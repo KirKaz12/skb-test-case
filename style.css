@@ -1,0 +1,81 @@
+* {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+	padding: 100px;
+	background: #e5e5e5;
+	font: 14px “Segoe UI”; 
+	color: #404040; 
+	line-height: 20px;
+}
+input {
+	height: 50px;
+	width: 300px;
+	padding: 10px;
+	padding-top: 0;
+	padding-bottom: 0;
+	font: inherit;
+}
+.list-item {
+	font: inherit;
+	padding: 10px;
+	background: #fff;
+}
+.list-item:first-child {
+	background: #dadada;
+}
+label {
+	font: inherit;
+	position: relative;
+}
+label::before {
+	content: 'Город';
+	position: absolute;
+	display: inline-block;
+	left: -60px;
+	top: 0;
+}
+label::after {
+	content: '';
+	position: absolute;
+	display: block;
+	right: 5px;
+	top: 5px;
+	//width: 10px;
+	//height: 10px;
+	//background: #000;
+	border: 7px solid grey;
+	border-right-color: transparent;
+	border-left-color: transparent;
+	border-bottom: none;
+}
+//input:focus 
+input[type="text"]:focus::placeholder {
+	opacity: .75;
+}
+input[type="text"]:focus::-webkit-input-placeholder {
+	opacity: .75;
+}
+input[type="text"]:focus::-ms-input-placeholder {
+	opacity: .75;
+}
+input[type="text"]:focus::-moz-placeholder {
+	opacity: .75;
+}
+ul {
+	margin: 0;
+	padding: 0;
+	font: inherit;
+	list-style: none;
+	width: 300px;
+	min-height: 200px;
+	max-height: 450px;
+	background: transparent;
+	overflow-y: auto;
+	
+}
+
+li {
+	font: inherit;
+}
