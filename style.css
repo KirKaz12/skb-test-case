@@ -1,33 +1,77 @@
+//Fonts
+@font-face {
+    font-family: 'KonturIconiceco20px';
+    src: url('fonts/KonturIconiceco20px.eot');
+    src: url('fonts/KonturIconiceco20px.eot') format('embedded-opentype'),
+         url('fonts/KonturIconiceco20px.woff2') format('woff2'),
+         url('fonts/KonturIconiceco20px.woff') format('woff'),
+         url('fonts/KonturIconiceco20px.ttf') format('truetype'),
+         url('fonts/KonturIconiceco20px.svg#KonturIconiceco20px') format('svg');
+}
+
+@font-face {
+    font-family: 'konturiconicecowebfont';
+    src: url('fonts/konturiconicecowebfont.eot');
+    src: url('fonts/konturiconicecowebfont.eot') format('embedded-opentype'),
+         url('fonts/konturiconicecowebfont.woff2') format('woff2'),
+         url('fonts/konturiconicecowebfont.woff') format('woff'),
+         url('fonts/konturiconicecowebfont.ttf') format('truetype'),
+         url('fonts/konturiconicecowebfont.svg#konturiconicecowebfont') format('svg');
+}
+
+//Styles
 * {
 	box-sizing: border-box;
 }
 body {
 	margin: 0;
 	padding: 100px;
+	position: relative;
 	background: #e5e5e5;
-	font: 14px “Segoe UI”; 
+	font: 14px "Segoe UI"; 
 	color: #404040; 
 	line-height: 20px;
+	min-height: 100vh;
+
 }
-input {
+.city-input {
 	height: 50px;
 	width: 300px;
 	padding: 10px;
 	padding-top: 0;
 	padding-bottom: 0;
 	font: inherit;
+	box-sizing: border-box;
 }
-.list-item {
+
+.city-input_error {
+	border-color: red;
+}
+
+.list-item,
+.list-item_error {
 	font: inherit;
 	padding: 10px;
 	background: #fff;
+	cursor: pointer;
 }
 .list-item:first-child {
-	background: #dadada;
+	background: #507299;
+	color: #fff;
+}
+.data-container {
+	display: inline-block;
+	position: relative;
+}
+.data-container__second {
+	position: absolute;
+	right: 50px;
+	bottom: 200px;
 }
 label {
 	font: inherit;
 	position: relative;
+	width: 300px;
 }
 label::before {
 	content: 'Город';
@@ -42,15 +86,17 @@ label::after {
 	display: block;
 	right: 5px;
 	top: 5px;
-	//width: 10px;
-	//height: 10px;
-	//background: #000;
 	border: 7px solid grey;
 	border-right-color: transparent;
 	border-left-color: transparent;
 	border-bottom: none;
 }
 //input:focus 
+
+input[type="text"]:focus {
+	border-color: #507299;
+	outline: none;
+}
 input[type="text"]:focus::placeholder {
 	opacity: .75;
 }
@@ -69,13 +115,15 @@ ul {
 	font: inherit;
 	list-style: none;
 	width: 300px;
-	min-height: 200px;
 	max-height: 450px;
 	background: transparent;
 	overflow-y: auto;
-	
+	box-shadow: 0 0 20px;
 }
-
+.data-list__up {
+	position: absolute;
+	bottom: 100%;
+}
 li {
 	font: inherit;
 }
