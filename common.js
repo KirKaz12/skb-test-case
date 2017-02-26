@@ -8,7 +8,7 @@
 		city,
 		input = document.querySelector("#city"),
 		dataCopy = data.slice(0);
-	console.log(list.children);
+	
 	//Сортировка списка городов по алфавиту
 	dataCopy.forEach(function(i){
 		if(parseInt(i["City"]) && i["City"].length > 5) {
