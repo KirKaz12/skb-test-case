@@ -1,22 +1,22 @@
 //Fonts
 @font-face {
     font-family: 'KonturIconiceco20px';
-    src: url('fonts/KonturIconiceco20px.eot');
-    src: url('fonts/KonturIconiceco20px.eot') format('embedded-opentype'),
-         url('fonts/KonturIconiceco20px.woff2') format('woff2'),
-         url('fonts/KonturIconiceco20px.woff') format('woff'),
-         url('fonts/KonturIconiceco20px.ttf') format('truetype'),
-         url('fonts/KonturIconiceco20px.svg') format('svg');
+    src: url('../fonts/KonturIconiceco20px.eot');
+    src: url('../fonts/KonturIconiceco20px.eot') format('embedded-opentype'),
+         url('../fonts/KonturIconiceco20px.woff2') format('woff2'),
+         url('../fonts/KonturIconiceco20px.woff') format('woff'),
+         url('../fonts/KonturIconiceco20px.ttf') format('truetype'),
+         url('../fonts/KonturIconiceco20px.svg') format('svg');
 }
 
 @font-face {
     font-family: 'konturiconicecowebfont';
-    src: url('fonts/konturiconicecowebfont.eot');
-    src: url('fonts/konturiconicecowebfont.eot') format('embedded-opentype'),
-         url('fonts/konturiconicecowebfont.woff2') format('woff2'),
-         url('fonts/konturiconicecowebfont.woff') format('woff'),
-         url('fonts/konturiconicecowebfont.ttf') format('truetype'),
-         url('fonts/konturiconicecowebfont.svg') format('svg');
+    src: url('../fonts/konturiconicecowebfont.eot');
+    src: url('../fonts/konturiconicecowebfont.eot') format('embedded-opentype'),
+         url('../fonts/konturiconicecowebfont.woff2') format('woff2'),
+         url('../fonts/konturiconicecowebfont.woff') format('woff'),
+         url('../fonts/konturiconicecowebfont.ttf') format('truetype'),
+         url('../fonts/konturiconicecowebfont.svg') format('svg');
 }
 
 //Styles
@@ -75,10 +75,19 @@ body {
 	background: #0d90d3;
 	color: #fff;
 }
+.list-item:hover {
+	background: #0d90d3;
+	color: #fff;
+}
 .data-container {
 	display: inline-block;
 	position: relative;
 }
+/* .data-container__first{
+	position: absolute;
+	left: 50px;
+	bottom: 200px;
+} */
 .data-container__second {
 	position: absolute;
 	right: 50px;
@@ -106,21 +115,8 @@ label::before {
 	color: #404040;
 	opacity: .5;
 }
-/* label::after {
-	font-family: 'konturiconicecowebfont';
-	content: &#xE04C;;
-	position: absolute;
-	display: block;
-	right: 5px;
-	top: 5px;
-	color: inherit;
-	border: 7px solid grey;
-	border-right-color: transparent;
-	border-left-color: transparent;
-	border-bottom: none;
-} */
-//input:focus 
 
+//input:focus 
 
 input[type="text"]:focus::placeholder {
 	opacity: .75;
@@ -132,7 +128,7 @@ input[type="text"]:focus::-ms-input-placeholder {
 	opacity: .75;
 }
 input[type="text"]:focus::-moz-placeholder {
-	opacity: .75;
+	opacity: .35;
 }
 input[type="text"]:focus {
 	border-width: 2px;
@@ -140,11 +136,12 @@ input[type="text"]:focus {
 	outline: none;
 }
 .data-list {
+	position: absolute;
 	margin: 0;
 	padding: 0;
 	font: inherit;
 	list-style: none;
-	width: 350px;
+	min-width: 350px;
 	max-height: 450px;
 	background: transparent;
 	overflow-y: auto;
@@ -161,7 +158,6 @@ input[type="text"]:focus {
 }
 
 .data-list__up {
-	position: absolute;
 	bottom: 100%;
 	right: 0;
 }

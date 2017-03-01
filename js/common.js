@@ -1,39 +1,60 @@
-(function(){
+;(function(){
 
 	var mapData,
-			dataSorted,
-			itemList = [],//Массив, который заполнится элементами li с данными из JSON
-			city,
-			inputs = document.querySelectorAll(".city-input"),
-			dataCopy = data.slice(0);
+		dataSorted,
+		dataSortedUnique = [],
+		itemList = [],//Массив, который заполнится элементами li с данными из JSON
+		city,
+		inputs = document.querySelectorAll("input[data-input]"),
+		dataCopy = data.slice();
 	
-	//Сортировка списка городов по алфавиту
-	dataCopy.forEach(function(i){
+	//Работа с входящим массивом JSON:
+	 //Сортировка списка городов по алфавиту и удаление повторяющихся городов
+	/*dataCopy.forEach(function(i){
 		if(parseInt(i["City"]) && i["City"].length > 5) {
 			i["City"] = i["City"].slice(i["City"].indexOf("км")+2) + ", " + i["City"].slice(0, i["City"].indexOf("км")+2);
 		}
-	});
+	});*/
+
 	mapData = dataCopy.map(function(elem, i) {
 		return {
 			index: i,
 			value: elem["City"].toLowerCase()
 		}
 	});
+
 	mapData.sort(function(a, b) {
 	  return +(a.value < b.value) || +(a.value === b.value) - 1;
 	});
+
 	dataSorted = mapData.map(function(elem) {
 		return dataCopy[elem.index]
 	});
+
+	for(var i = 0; i<dataSorted.length; i++) {
+		if( dataSorted[i]["City"].slice(-2) !== "км" && 
+			dataSorted[i+1] &&
+			dataSorted[i]["City"] !== dataSorted[i+1]["City"]) 
+		{
+			dataSortedUnique.push(dataSorted[i] );
+		}
+			
+	}
+	//Убираем вспомогательные массивы, в том числе data из global scope
+	data = dataCopy = mapData = dataSorted = null;
 	
-	//добавление в массив itemList элементаов li с названиями городов в памяти из отсортированных данных
-	dataSorted.forEach(function(i) {
+	//добавление в массив itemList элементов li с названиями городов в памяти из отсортированных данных
+	dataSortedUnique.forEach(function(i) {
 		var listItem = document.createElement("li");
 		listItem.classList.add("list-item");
+		listItem.setAttribute("data-list-item", "city-item");
 		listItem.innerHTML = i["City"];
 		itemList.push(listItem);
 		listItem = null;
 	});
+
+	//Убираем вспомогательный массив
+	dataSortedUnique = null;
 
 	//Конструктор класса Autocomplete
 	function Autocomplete(input) {
@@ -55,7 +76,7 @@
 		}
 	}
 	
-	//Сеттер модификатора списку городов для открытия вверх при расстоянии в данном случае от низа окна не более 200px
+	//Сеттер модификатора ul - спискa городов для открытия вверх при расстоянии в данном случае от низа окна не более 200px
 	Autocomplete.prototype._setListUp = function() {
 		var offset = window.innerHeight - this._container.clientHeight - this._container.offsetTop;
 		if(offset <= 200)
@@ -89,8 +110,10 @@
 	//Метод добавления города в список при соответствии запросу
 	Autocomplete.prototype._insertItem = function() {
 		var value = this._input.value;
-		if( value && !(value[0] === " ") ) {
-			for(var i = 0; i < itemList.length; i++) {
+		if( value && !(value[0] === " ") ) 
+		{
+			for(var i = 0; i < itemList.length; i++) 
+			{
 				if( itemList[i].innerText.toLowerCase()
 					 .indexOf(value.toLowerCase() ) === 0) 
 				{
@@ -103,7 +126,7 @@
 	//Метод добавления "Не найдено" в список при несоответствии запросу 
 	Autocomplete.prototype._insertNotFound = function() {
 		var value = this._input.value;
-		if(value && this._list.children.length === 0) 
+		if( value && this._list.children.length === 0 ) 
 		{
 			this._list.appendChild(this._notFound);
 		}
@@ -122,7 +145,9 @@
 
 	//Метод удаления города из списка при несоответствии введенному значению
 	Autocomplete.prototype._deleteItem = function() {
-		var cities = document.querySelectorAll(".list-item"),
+		var cities = document.querySelectorAll(
+			"li[data-list-item]"
+			),
 				value = this._input.value;
 		for(var i = 0; i < cities.length; i++) 
 		{
@@ -138,6 +163,18 @@
 		{
 			this._list.removeChild(this._list.lastChild);
 		}
+	}
+
+	//Метод выбора значение элемента по клику и последующего скрытия списка
+	Autocomplete.prototype._clickItem = function() {
+		var that = this;
+		this._list.addEventListener("click", function(e) {
+			if(e.target.nodeName === "LI")
+			{
+				that._input.value = e.target.innerText;
+				that._clearList.call(that);
+			}
+		});
 	}
 	
 	//Метод очищения списка
@@ -163,7 +200,8 @@
 		this._input.addEventListener("keyup", function(){
 			that._insertItem.call(that);
 			that._deleteItem.call(that);
-			if( !(this.value.length) ) {
+			if( !(this.value.length) ) 
+			{
 				that._clearList.call(that);
 			}
 			that._insertNotFound.call(that);
@@ -175,10 +213,15 @@
 		var that = this;
 		this._input.addEventListener("focus", function(){
 			if( this.value.length ) 
+			{
 				that._insertItem.call(that);
+				that._insertNotFound.call(that);
+			}
 			this.classList.remove("city-input_error");
-			if(that._parent.lastChild === that._chooseItem)
+			if( that._parent.lastChild === that._chooseItem ) 
+			{
 				that._parent.removeChild(that._chooseItem);
+			}
 		});
 	}
 	
@@ -188,45 +231,58 @@
 		this._input.addEventListener("blur", function() {
 			that._insertChooseItem.call(that);
 			if( that._list.firstChild &&
-					that._list.firstChild.classList
-					.contains("list-item_error")) 
+				that._list.firstChild.classList
+				.contains("list-item_error") ) 
+			{
+				that._list.removeChild(that._list.firstChild);
+			} else if( that._list.children.length === 1 &&
+								 that._list.firstChild &&
+								 that._list.firstChild.innerText ===
+								 that._input.value ) 
 			{
 				that._list.removeChild(that._list.firstChild);
 			}
 		});
 	}
-	//Общий метод для инициализации всех слушателей событий
+
+	//Метод отмены прокрутки страницы при окончании прокрутки списка
+	Autocomplete.prototype._scrollListen = function() {
+		var delta,
+				isFirefox = (navigator.userAgent.indexOf("Gecko") !== -1);
+		this._list.addEventListener("mousewheel", function(e) {
+			delta = e.wheelDelta;
+			this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+		  e.preventDefault();
+		});
+		//Для Mozilla
+		if(isFirefox) 
+		{
+			this._list.addEventListener("DOMMouseScroll", function(e) {
+					delta = -e.detail;
+					this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+				  e.preventDefault();
+			});
+		}
+	}
+
+	//Метод для инициализации всех слушателей событий
 	Autocomplete.prototype._triggerAllListeners = function() {
 		this._keyupListen();
 		this._focusListen();
 		this._blurListen();
+		this._scrollListen();
+		this._clickItem();
 	}
-	//Метод инициализации экземпляра класса
-	Autocomplete.prototype.initAutocomplete = function() {
+	//Метод инициализации
+	Autocomplete.prototype.InitAutocomplete = function() {
 		this._setAllProperties();
 		this._triggerAllListeners();
 	}
-	Autocomplete.prototype.check = function() {
-		//console.log(this._chooseItem);
-	}
 
-	
 	inputOnTop = new Autocomplete(inputs[0]);
 	inputOnBottom = new Autocomplete(inputs[1]);
 
-	inputOnTop.initAutocomplete();
-	inputOnBottom.initAutocomplete();
-
-	inputOnTop.check();
-	inputOnBottom.check();
-
-	//Функция добавления элемента в список
-	
-
-	//Функция очищения списка
-
-
-	//Проверка расстояния от контейнера с input до нижнего края окна
-	
+	inputOnTop.InitAutocomplete();
+	inputOnBottom.InitAutocomplete();
 	
 })();

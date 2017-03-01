@@ -3,24 +3,24 @@
 <head>
 	<meta charset="UTF-8" />
 	<title>SKB test case</title>
-	<link rel="stylesheet" href="style.css" />
+	<link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-	<div class="data-container">
+	<div class="data-container data-container__first">
 		<label for="city">
-			<input type="text" id="city" class="city-input" placeholder="Начните вводить код или название" autocomplete="off" />
+			<input type="text" id="city" class="city-input" placeholder="Начните вводить код или название" autocomplete="off" data-input="city-input" />
 			<i class="dropdown-icon">&#xE04C;</i>
 		</label>
 		<ul class="data-list"></ul>
 	</div><!-- /.data-container -->
 	<div class="data-container data-container__second">
-		<label for="city-2">
-			<input type="text" id="city-2" class="city-input" placeholder="Начните вводить код или название" autocomplete="off" />
+		<label for="city_second">
+			<input type="text" id="city_second" class="city-input" placeholder="Начните вводить код или название" autocomplete="off" data-input="city-input" />
 			<i class="dropdown-icon">&#xE04C;</i>
 		</label>
 		<ul class="data-list"></ul>
 	</div><!-- /.data-container -->
-	<script src="data.json"></script>
-	<script src="common.js"></script>
+	<script src="js/data.json"></script>
+	<script src="js/common.js"></script>
 </body>
 </html>
