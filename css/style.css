@@ -75,9 +75,19 @@ body {
 	background: #0d90d3;
 	color: #fff;
 }
+.list-item:nth-child(n+6) {
+	display: none;
+}
 .list-item:hover {
 	background: #0d90d3;
 	color: #fff;
+}
+.list-counter {
+	font: inherit;
+	padding: 10px;
+	background: #fff;
+	font-size: 12px;
+	color: grey;
 }
 .data-container {
 	display: inline-block;

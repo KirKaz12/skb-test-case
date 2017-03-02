@@ -91,6 +91,15 @@
 		this._notFound = notFound;
 	}
 
+	//Метод показа кол-ва элементов при большой выборке
+	Autocomplete.prototype._setCounterItem = function() {
+		var counterItem = document.createElement("li");
+		counterItem.innerHTML = "Показано 5 из <span class='list-length'>0</span> найденных городов. Уточните запрос, чтобы увидеть остальные.";
+		counterItem.classList.add("list-counter");
+		counterItem.setAttribute("data-list-counter", "");
+		this._counterItem = counterItem; 
+	}
+
 	//Сеттер свойства, указывающего на элемент c сообщением об ошибке при валидации
 	Autocomplete.prototype._setChooseItem = function() {
 		var chooseItem = document.createElement("span");
@@ -105,6 +114,7 @@
 		this._setListUp();
 		this._setNotFound();
 		this._setChooseItem();
+		this._setCounterItem();
 	}
 
 	//Метод добавления города в список при соответствии запросу
@@ -148,7 +158,9 @@
 		var cities = document.querySelectorAll(
 			"li[data-list-item]"
 			),
+				counterLI = document.querySelector("li[data-list-counter]");
 				value = this._input.value;
+		console.log(cities.length)
 		for(var i = 0; i < cities.length; i++) 
 		{
 			if( cities[i].innerText.toLowerCase()
@@ -163,13 +175,23 @@
 		{
 			this._list.removeChild(this._list.lastChild);
 		}
+		if( cities.length <= 5 ) {
+			console.log(this._list.children);
+			[].forEach.call(this._list.children, function(i){
+				if( i.classList.contains("list-counter") ) 
+				{
+					i.remove();
+				}
+			});
+		}
 	}
 
 	//Метод выбора значение элемента по клику и последующего скрытия списка
 	Autocomplete.prototype._clickItem = function() {
 		var that = this;
 		this._list.addEventListener("click", function(e) {
-			if(e.target.nodeName === "LI")
+			if( e.target.nodeName === "LI" && 
+					e.target.className === "list-item" )
 			{
 				that._input.value = e.target.innerText;
 				that._clearList.call(that);
@@ -185,13 +207,29 @@
 		{
 			this._list.removeChild(this._list.firstChild);
 		}
-		//Подчищаем "Не найдено"
+		//Подчищаем "Не найдено" и счетчик большого кол-ва городов
 		if( this._list.firstChild && 
+			(this._list.firstChild.classList
+			.contains("list-item_error") || 
 			this._list.firstChild.classList
-			.contains("list-item_error") ) 
+			.contains("list-counter")) ) 
 		{
 			this._list.removeChild(this._list.firstChild);
 		}
+	}
+
+	Autocomplete.prototype._insertCounterItem = function() {
+		var counter,
+				counterLI,
+				items = document.querySelectorAll(".list-item");
+		if( items.length > 5 ) 
+		{
+			this._list.appendChild(this._counterItem);
+			counter = document.querySelector(".list-length");
+			counterLI = document.querySelector("li[data-list-counter]");
+		} 
+		if( counterLI )
+			counter.innerText = items.length;
 	}
 	
 	//Метод-слушатель keyup
@@ -199,12 +237,13 @@
 		var that = this;
 		this._input.addEventListener("keyup", function(){
 			that._insertItem.call(that);
+			that._insertNotFound.call(that);
+			that._insertCounterItem.call(that);
 			that._deleteItem.call(that);
 			if( !(this.value.length) ) 
 			{
 				that._clearList.call(that);
 			}
-			that._insertNotFound.call(that);
 		});
 	}
 	
@@ -273,6 +312,7 @@
 		this._scrollListen();
 		this._clickItem();
 	}
+
 	//Метод инициализации
 	Autocomplete.prototype.InitAutocomplete = function() {
 		this._setAllProperties();
