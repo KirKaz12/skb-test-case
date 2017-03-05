@@ -10,12 +10,6 @@
 	
 	//Работа с входящим массивом JSON:
 	 //Сортировка списка городов по алфавиту и удаление повторяющихся городов
-	/*dataCopy.forEach(function(i){
-		if(parseInt(i["City"]) && i["City"].length > 5) {
-			i["City"] = i["City"].slice(i["City"].indexOf("км")+2) + ", " + i["City"].slice(0, i["City"].indexOf("км")+2);
-		}
-	});*/
-
 	mapData = dataCopy.map(function(elem, i) {
 		return {
 			index: i,
@@ -127,6 +121,7 @@
 				if( itemList[i].innerText.toLowerCase()
 					 .indexOf(value.toLowerCase() ) === 0) 
 				{
+					this._list.classList.add("data-list_visible");
 					this._list.insertBefore(itemList[i], this._list.firstChild);
 				}
 			}
@@ -153,6 +148,26 @@
 		}
 	}
 
+	Autocomplete.prototype._insertCounterItem = function() {
+		var counter,
+				counterLI,
+				cities,
+				items = document.querySelectorAll(".list-item");
+		if( !counterLI && items.length > 5 ) 
+		{
+			this._list.appendChild(this._counterItem);
+			counter = document.querySelector(".list-length");
+			counterLI = document.querySelector("li[data-list-counter]");
+		} 
+		if( counterLI )
+		{
+			items = document.querySelectorAll(".list-item");
+			cities = items.length;
+			console.log(cities);
+			counter.innerText = cities;
+		}
+	}
+
 	//Метод удаления города из списка при несоответствии введенному значению
 	Autocomplete.prototype._deleteItem = function() {
 		var cities = document.querySelectorAll(
@@ -160,7 +175,6 @@
 			),
 				counterLI = document.querySelector("li[data-list-counter]");
 				value = this._input.value;
-		console.log(cities.length)
 		for(var i = 0; i < cities.length; i++) 
 		{
 			if( cities[i].innerText.toLowerCase()
@@ -175,8 +189,13 @@
 		{
 			this._list.removeChild(this._list.lastChild);
 		}
+	}
+
+	Autocomplete.prototype._deleteCounter = function() {
+		var cities = document.querySelectorAll(
+			"li[data-list-item]"
+			);
 		if( cities.length <= 5 ) {
-			console.log(this._list.children);
 			[].forEach.call(this._list.children, function(i){
 				if( i.classList.contains("list-counter") ) 
 				{
@@ -216,20 +235,8 @@
 		{
 			this._list.removeChild(this._list.firstChild);
 		}
-	}
 
-	Autocomplete.prototype._insertCounterItem = function() {
-		var counter,
-				counterLI,
-				items = document.querySelectorAll(".list-item");
-		if( items.length > 5 ) 
-		{
-			this._list.appendChild(this._counterItem);
-			counter = document.querySelector(".list-length");
-			counterLI = document.querySelector("li[data-list-counter]");
-		} 
-		if( counterLI )
-			counter.innerText = items.length;
+		this._list.classList.remove("data-list_visible");
 	}
 	
 	//Метод-слушатель keyup
@@ -237,9 +244,10 @@
 		var that = this;
 		this._input.addEventListener("keyup", function(){
 			that._insertItem.call(that);
-			that._insertNotFound.call(that);
-			that._insertCounterItem.call(that);
 			that._deleteItem.call(that);
+			that._insertCounterItem.call(that);
+			that._deleteCounter.call(that);
+			that._insertNotFound.call(that);
 			if( !(this.value.length) ) 
 			{
 				that._clearList.call(that);

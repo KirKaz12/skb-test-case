@@ -26,13 +26,13 @@
 body {
 	margin: 0;
 	padding: 100px;
+	padding-left: 200px;
 	position: relative;
 	background: #e5e5e5;
 	font: 14px "Segoe UI"; 
 	color: #404040; 
 	line-height: 20px;
 	min-height: 100vh;
-
 }
 .city-input {
 	border: none;
@@ -72,14 +72,14 @@ body {
 	cursor: pointer;
 }
 .list-item:first-child {
-	background: #0d90d3;
+	background: #499dd9;
 	color: #fff;
 }
 .list-item:nth-child(n+6) {
 	display: none;
 }
 .list-item:hover {
-	background: #0d90d3;
+	background: #499dd9;
 	color: #fff;
 }
 .list-counter {
@@ -100,8 +100,11 @@ body {
 } */
 .data-container__second {
 	position: absolute;
-	right: 50px;
+	right: 200px;
 	bottom: 200px;
+}
+.data-container__second-header {
+	font-weight: 400;
 }
 label {
 	font: inherit;
@@ -146,6 +149,8 @@ input[type="text"]:focus {
 	outline: none;
 }
 .data-list {
+	border-top: none;
+	display: none;
 	position: absolute;
 	margin: 0;
 	padding: 0;
@@ -155,7 +160,13 @@ input[type="text"]:focus {
 	max-height: 450px;
 	background: transparent;
 	overflow-y: auto;
-	box-shadow: 0 0 20px #404040;
+	box-shadow: 15px 15px 25px -15px rgba(0, 0, 0, .3),
+							-15px 15px 25px -15px rgba(0, 0, 0, .3);
+}
+
+.data-list_visible {
+	display: block;
+	border: 1px solid #acacac;
 }
 
 .data-list::-webkit-scrollbar-button {
@@ -168,8 +179,10 @@ input[type="text"]:focus {
 }
 
 .data-list__up {
-	bottom: 100%;
+	bottom: 102%;
 	right: 0;
+	box-shadow: -15px -15px 25px -15px rgba(0, 0, 0, .3),
+							15px -15px 25px -15px rgba(0, 0, 0, .3);
 }
 li {
 	font: inherit;
