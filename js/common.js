@@ -259,7 +259,8 @@
 	Autocomplete.prototype._focusListen = function() {
 		var that = this;
 		this._input.addEventListener("focus", function(){
-			if( this.value.length ) 
+			if( this.value.length && 
+				this.value !== that._list.firstChild.innerText ) 
 			{
 				that._insertItem.call(that);
 				that._insertNotFound.call(that);
@@ -281,12 +282,14 @@
 				that._list.firstChild.classList
 				.contains("list-item_error") ) 
 			{
+				that._list.classList.remove("data-list_visible");
 				that._list.removeChild(that._list.firstChild);
 			} else if( that._list.children.length === 1 &&
 								 that._list.firstChild &&
 								 that._list.firstChild.innerText ===
 								 that._input.value ) 
 			{
+				that._list.classList.remove("data-list_visible");
 				that._list.removeChild(that._list.firstChild);
 			}
 		});
