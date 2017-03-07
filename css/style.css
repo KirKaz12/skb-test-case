@@ -38,7 +38,7 @@ body {
 	border: none;
 	border: 1px solid #acacac;
 	height: 50px;
-	width: 300px;
+	min-width: 300px;
 	padding: 10px;
 	padding-top: 0;
 	padding-bottom: 0;
@@ -59,10 +59,11 @@ body {
 }
 .city-notfound {
 	display: block;
-	position: relative;
+	position: absolute;
 	font: inherit;
 	color: red;
-	top: 10px;
+	top: 45px;
+	min-width: 300px;
 }
 .list-item,
 .list-item_error {
@@ -93,11 +94,6 @@ body {
 	display: inline-block;
 	position: relative;
 }
-/* .data-container__first{
-	position: absolute;
-	left: 50px;
-	bottom: 200px;
-} */
 .data-container__second {
 	position: absolute;
 	right: 200px;
@@ -109,7 +105,7 @@ body {
 label {
 	font: inherit;
 	position: relative;
-	width: 300px;
+	min-width: 300px;
 }
 label::before {
 	content: 'Город';

@@ -1,12 +1,12 @@
 ;(function(){
 
-	var mapData,
-		dataSorted,
-		dataSortedUnique = [],
+	var mapData,// Вспомогательный массив для сортировки
+		dataSorted,// Вспомогательный массив для сортировки
+		dataSortedUnique = [],//Здесь соберутся отсортированные уникальные данные из JSON
 		itemList = [],//Массив, который заполнится элементами li с данными из JSON
 		city,
 		inputs = document.querySelectorAll("input[data-input]"),
-		dataCopy = data.slice();
+		dataCopy = data.slice(); //Копия JSON-массива. Для сортировки
 	
 	//Работа с входящим массивом JSON:
 	 //Сортировка списка городов по алфавиту и удаление повторяющихся городов
@@ -22,22 +22,22 @@
 	});
 
 	dataSorted = mapData.map(function(elem) {
-		return dataCopy[elem.index]
+		return dataCopy[elem.index];
 	});
 
 	for(var i = 0; i<dataSorted.length; i++) {
-		if( dataSorted[i]["City"].slice(-2) !== "км" && 
-			dataSorted[i+1] &&
-			dataSorted[i]["City"] !== dataSorted[i+1]["City"]) 
+		if( (dataSorted[i]["City"].slice(-2) !== "км") && 
+					dataSorted[i+1] &&
+						(dataSorted[i]["City"] !== dataSorted[i+1]["City"]) ) 
 		{
-			dataSortedUnique.push(dataSorted[i] );
+			dataSortedUnique.push( dataSorted[i] );
 		}
 			
 	}
 	//Убираем вспомогательные массивы, в том числе data из global scope
 	data = dataCopy = mapData = dataSorted = null;
 	
-	//добавление в массив itemList элементов li с названиями городов в памяти из отсортированных данных
+	//Добавление в массив itemList элементов li с названиями городов из отсортированных данных
 	dataSortedUnique.forEach(function(i) {
 		var listItem = document.createElement("li");
 		listItem.classList.add("list-item");
@@ -58,11 +58,11 @@
 		this._containerChildren = this._container.childNodes;
 	}
   
-  //Сеттер свойства, указывающего на элемент ul - список городов
+  //Сеттер свойства, соотвентсвтующего элементу ul - список городов
 	Autocomplete.prototype._setList = function() {
 		for(var i = 0; i < this._containerChildren.length; i++) {
-			if(this._containerChildren[i].classList && 
-				this._containerChildren[i].classList.contains("data-list")) 
+			if( this._containerChildren[i].classList && 
+						this._containerChildren[i].classList.contains("data-list") ) 
 			{
 				this._list = this._containerChildren[i];
 				return;
@@ -73,7 +73,7 @@
 	//Сеттер модификатора ul - спискa городов для открытия вверх при расстоянии в данном случае от низа окна не более 200px
 	Autocomplete.prototype._setListUp = function() {
 		var offset = window.innerHeight - this._container.clientHeight - this._container.offsetTop;
-		if(offset <= 200)
+		if( offset <= 200 )
 			this._list.classList.add("data-list__up");
 	}
 
@@ -88,7 +88,8 @@
 	//Метод показа кол-ва элементов при большой выборке
 	Autocomplete.prototype._setCounterItem = function() {
 		var counterItem = document.createElement("li");
-		counterItem.innerHTML = "Показано 5 из <span class='list-length'>0</span> найденных городов. Уточните запрос, чтобы увидеть остальные.";
+		counterItem.innerHTML = 
+		"Показано 5 из <span class='list-length'>0</span> найденных городов. Уточните запрос, чтобы увидеть остальные.";
 		counterItem.classList.add("list-counter");
 		counterItem.setAttribute("data-list-counter", "");
 		this._counterItem = counterItem; 
@@ -119,7 +120,7 @@
 			for(var i = 0; i < itemList.length; i++) 
 			{
 				if( itemList[i].innerText.toLowerCase()
-					 .indexOf(value.toLowerCase() ) === 0) 
+					 .indexOf(value.toLowerCase()) === 0 ) 
 				{
 					this._list.classList.add("data-list_visible");
 					this._list.insertBefore(itemList[i], this._list.firstChild);
@@ -133,6 +134,7 @@
 		var value = this._input.value;
 		if( value && this._list.children.length === 0 ) 
 		{
+			this._list.classList.add("data-list_visible");
 			this._list.appendChild(this._notFound);
 		}
 	}
@@ -141,13 +143,15 @@
 	Autocomplete.prototype._insertChooseItem = function() {
 		var value = this._input.value;
 		if( value && 
-			  this._list.firstChild.classList.contains("list-item_error") )
+					this._list.firstChild &&
+					  this._list.firstChild.classList.contains("list-item_error") )
 		{
 			this._input.classList.add("city-input_error");
 			this._parent.appendChild(this._chooseItem);
 		}
 	}
 
+	//Метод добавления счетчика списка городов при кол-ве вариантов > 5
 	Autocomplete.prototype._insertCounterItem = function() {
 		var counter,
 				counterLI,
@@ -163,34 +167,11 @@
 		{
 			items = document.querySelectorAll(".list-item");
 			cities = items.length;
-			console.log(cities);
 			counter.innerText = cities;
 		}
 	}
 
-	//Метод удаления города из списка при несоответствии введенному значению
-	Autocomplete.prototype._deleteItem = function() {
-		var cities = document.querySelectorAll(
-			"li[data-list-item]"
-			),
-				counterLI = document.querySelector("li[data-list-counter]");
-				value = this._input.value;
-		for(var i = 0; i < cities.length; i++) 
-		{
-			if( cities[i].innerText.toLowerCase()
-				.indexOf(value.toLowerCase() ) !== 0) 
-			{
-				cities[i].remove();	
-			}
-		}
-		if( this._list.children.length >=2 && 
-				this._list.lastChild.classList
-				.contains("list-item_error") )
-		{
-			this._list.removeChild(this._list.lastChild);
-		}
-	}
-
+	//Метод удаления счетчика списка городов при кол-ве вариантов < 5
 	Autocomplete.prototype._deleteCounter = function() {
 		var cities = document.querySelectorAll(
 			"li[data-list-item]"
@@ -205,12 +186,35 @@
 		}
 	}
 
+	//Метод удаления города из списка при несоответствии введенному значению
+	Autocomplete.prototype._deleteItem = function() {
+		var cities = document.querySelectorAll(
+			"li[data-list-item]"
+			),
+				counterLI = document.querySelector("li[data-list-counter]");
+				value = this._input.value;
+		for(var i = 0; i < cities.length; i++) 
+		{
+			if( cities[i].innerText.toLowerCase()
+					.indexOf(value.toLowerCase()) !== 0 ) 
+			{
+				cities[i].remove();	
+			}
+		}
+		if( this._list.children.length >=2 && 
+					this._list.lastChild.classList
+					.contains("list-item_error") )
+		{
+			this._list.removeChild(this._list.lastChild);
+		}
+	}
+
 	//Метод выбора значение элемента по клику и последующего скрытия списка
 	Autocomplete.prototype._clickItem = function() {
 		var that = this;
 		this._list.addEventListener("click", function(e) {
 			if( e.target.nodeName === "LI" && 
-					e.target.className === "list-item" )
+						e.target.className === "list-item" )
 			{
 				that._input.value = e.target.innerText;
 				that._clearList.call(that);
@@ -221,22 +225,24 @@
 	//Метод очищения списка
 	Autocomplete.prototype._clearList = function() {
 		while( this._list.firstChild && 
-					this._list.firstChild.classList
-					.contains("list-item") ) 
+						this._list.firstChild.classList
+						.contains("list-item") ) 
 		{
 			this._list.removeChild(this._list.firstChild);
+			this._list.classList.remove("data-list_visible");
 		}
 		//Подчищаем "Не найдено" и счетчик большого кол-ва городов
 		if( this._list.firstChild && 
-			(this._list.firstChild.classList
-			.contains("list-item_error") || 
-			this._list.firstChild.classList
-			.contains("list-counter")) ) 
+				(this._list.firstChild.classList
+				.contains("list-item_error") || 
+					this._list.firstChild.classList
+					.contains("list-counter")) ) 
 		{
 			this._list.removeChild(this._list.firstChild);
+			this._list.classList.remove("data-list_visible");
 		}
 
-		this._list.classList.remove("data-list_visible");
+		
 	}
 	
 	//Метод-слушатель keyup
@@ -260,7 +266,8 @@
 		var that = this;
 		this._input.addEventListener("focus", function(){
 			if( this.value.length && 
-				this.value !== that._list.firstChild.innerText ) 
+						that._list.firstChild &&
+							this.value !== that._list.firstChild.innerText ) 
 			{
 				that._insertItem.call(that);
 				that._insertNotFound.call(that);
@@ -279,15 +286,15 @@
 		this._input.addEventListener("blur", function() {
 			that._insertChooseItem.call(that);
 			if( that._list.firstChild &&
-				that._list.firstChild.classList
-				.contains("list-item_error") ) 
+						that._list.firstChild.classList
+						.contains("list-item_error") ) 
 			{
 				that._list.classList.remove("data-list_visible");
 				that._list.removeChild(that._list.firstChild);
 			} else if( that._list.children.length === 1 &&
-								 that._list.firstChild &&
-								 that._list.firstChild.innerText ===
-								 that._input.value ) 
+									 that._list.firstChild &&
+										 that._list.firstChild.innerText ===
+											 that._input.value ) 
 			{
 				that._list.classList.remove("data-list_visible");
 				that._list.removeChild(that._list.firstChild);
@@ -330,6 +337,7 @@
 		this._triggerAllListeners();
 	}
 
+	//Создаем экземпляры класса с аргуметом input
 	inputOnTop = new Autocomplete(inputs[0]);
 	inputOnBottom = new Autocomplete(inputs[1]);
 
