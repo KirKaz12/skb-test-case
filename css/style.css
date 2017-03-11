@@ -1,25 +1,4 @@
-//Fonts
-@font-face {
-    font-family: 'KonturIconiceco20px';
-    src: url('../fonts/KonturIconiceco20px.eot');
-    src: url('../fonts/KonturIconiceco20px.eot') format('embedded-opentype'),
-         url('../fonts/KonturIconiceco20px.woff2') format('woff2'),
-         url('../fonts/KonturIconiceco20px.woff') format('woff'),
-         url('../fonts/KonturIconiceco20px.ttf') format('truetype'),
-         url('../fonts/KonturIconiceco20px.svg') format('svg');
-}
-
-@font-face {
-    font-family: 'konturiconicecowebfont';
-    src: url('../fonts/konturiconicecowebfont.eot');
-    src: url('../fonts/konturiconicecowebfont.eot') format('embedded-opentype'),
-         url('../fonts/konturiconicecowebfont.woff2') format('woff2'),
-         url('../fonts/konturiconicecowebfont.woff') format('woff'),
-         url('../fonts/konturiconicecowebfont.ttf') format('truetype'),
-         url('../fonts/konturiconicecowebfont.svg') format('svg');
-}
-
-//Styles
+/* Styles */
 * {
 	box-sizing: border-box;
 }
@@ -32,7 +11,7 @@ body {
 	font: 14px "Segoe UI"; 
 	color: #404040; 
 	line-height: 20px;
-	min-height: 100vh;
+	min-height: 120vh;
 }
 .city-input {
 	border: none;
@@ -123,9 +102,15 @@ label::before {
 	top: 2px;
 	color: #404040;
 	opacity: .5;
+	transition: opacity .25s ease-in-out;
 }
 
-//input:focus 
+.dropdown-icon__hidden {
+	transition: opacity .25s ease-in-out;
+	opacity: 0;
+}
+
+/* input:focus  */
 
 input[type="text"]:focus::placeholder {
 	opacity: .75;
@@ -159,21 +144,10 @@ input[type="text"]:focus {
 	box-shadow: 15px 15px 25px -15px rgba(0, 0, 0, .3),
 							-15px 15px 25px -15px rgba(0, 0, 0, .3);
 }
-
 .data-list_visible {
 	display: block;
 	border: 1px solid #acacac;
 }
-
-.data-list::-webkit-scrollbar-button {
-	width: 0;
-	height: 0;
-}
-.data-list::-webkit-scrollbar-thumb  {
-	 border-radius: 10px;
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
-}
-
 .data-list__up {
 	bottom: 102%;
 	right: 0;
