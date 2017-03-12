@@ -60,20 +60,17 @@
   
   //Сеттер свойства, соотвентсвтующего элементу ul - список городов
 	Autocomplete.prototype._setList = function() {
-		for(var i = 0; i < this._containerChildren.length; i++) {
-			/*if( this._containerChildren[i].classList && 
-						this._containerChildren[i].classList.contains("data-list") ) 
-			{
-				this._list = this._containerChildren[i];
-				return;
-			}*/
+		var list = document.createElement("ul");
+		list.classList.add("data-list");
+		list.setAttribute("data-list", "");
+		this._list = list;
+		/*for(var i = 0; i < this._containerChildren.length; i++) {
 			if( this._containerChildren[i].matches(".data-list") )
 			{
 				this._list = this._containerChildren[i];
-				console.log(this._list)
 				return;
 			}
-		}
+		}*/
 	}
 	
 	//Сеттер модификатора ul - спискa городов для открытия вверх при расстоянии в данном случае от низа окна не более 200px
@@ -87,7 +84,7 @@
 	Autocomplete.prototype._setNotFound = function() {
 		var notFound = document.createElement("li");
 		notFound.classList.add("list-item_error");
-		notFound.innerText = "Не найдено";
+		notFound.innerHTML = "Не найдено";
 		this._notFound = notFound;
 	}
 
@@ -95,7 +92,7 @@
 	Autocomplete.prototype._setCounterItem = function() {
 		var counterItem = document.createElement("li");
 		counterItem.innerHTML = 
-		"Показано 5 из <span class='list-length'>0</span> найденных городов. Уточните запрос, чтобы увидеть остальные.";
+		"Показано <span class='items-shown'>5</span> из <span class='list-length'>0</span> найденных городов. Уточните запрос, чтобы увидеть остальные.";
 		counterItem.classList.add("list-counter");
 		counterItem.setAttribute("data-list-counter", "");
 		this._counterItem = counterItem; 
@@ -105,8 +102,20 @@
 	Autocomplete.prototype._setChooseItem = function() {
 		var chooseItem = document.createElement("span");
 		chooseItem.classList.add("city-notfound");
-		chooseItem.innerText = "Выберите значение из списка";
+		chooseItem.innerHTML = "Выберите значение из списка";
 		this._chooseItem = chooseItem;
+	}
+
+	//Сеттер модификатора на список городов при кол-ве городов меньше или равном 5. Данный модификатор устанавливает отступ снизу = 0, так как счетчик городов в этом случае не показывается
+	Autocomplete.prototype._setListSmallMode = function() {
+		//this._sibling = this._parent.nextElementSibling;
+		//var list = this._sibling.querySelector("ul[data-list]");
+		if(this._list && this._list.children.length <= 5) {
+			this._list.classList.add("data-list__small");
+		} else {
+			if(this._list)
+				this._list.classList.remove("data-list__small");
+		}
 	}
 
 	//Общий сеттер для всех свойств
@@ -121,40 +130,33 @@
 	//Метод добавления города в список при соответствии запросу
 	Autocomplete.prototype._insertItem = function() {
 		var value = this._input.value,
-				start,
-				end,
-				time;
+				list;
+		this._parent.insertBefore(this._list, this._parent.nextElementSibling);
+		/*this._sibling = this._parent.nextElementSibling;
+		list = this._sibling.querySelector("ul[data-list]");*/
 		if( value && !(value[0] === " ") ) 
 		{
-			start = performance.now();
 			for(var i = 0; i < itemList.length; i++) 
 			{
-				if( itemList[i].innerText.toLowerCase()
+				if( itemList[i].innerHTML.toLowerCase()
 					 .indexOf(value.toLowerCase()) === 0 ) 
 				{
 					
-					this._list.classList.add("data-list_visible");
+					//this._list.classList.add("data-list_visible");
 					this._list.insertBefore(itemList[i], this._list.firstElementChild);
 				}
 			}
 			
 		}
-		end = performance.now();
-		time = end - start;
-		console.log(time);
-		if(time > 500) {
-			document.body.style.background = "green";
-			
-		} 
-		if(document.body.style.background === "green")
-			setTimeout( function() {
-				document.body.style.background = "#e5e5e5";
-			},  2000 );
 	} 
 
 	//Метод добавления "Не найдено" в список при несоответствии запросу 
 	Autocomplete.prototype._insertNotFound = function() {
-		var value = this._input.value;
+		var value = this._input.value,
+				list;
+		this._parent.insertBefore(this._list, this._parent.nextElementSibling);
+		/*this._sibling = this._parent.nextElementSibling;
+		list = this._sibling.querySelector("ul[data-list]");*/
 		if( value && this._list.children.length === 0 ) 
 		{
 			this._list.classList.add("data-list_visible");
@@ -164,7 +166,11 @@
 
 	//Валидация
 	Autocomplete.prototype._insertChooseItem = function() {
-		var value = this._input.value;
+		var value = this._input.value,
+				list;
+		this._parent.insertBefore(this._list, this._parent.nextElementSibling);
+		/*this._sibling = this._parent.nextElementSibling;
+		list = this._sibling.querySelector("ul[data-list]");*/
 		/*if( value && 
 					this._list.firstChild &&
 					  this._list.firstChild.classList.contains("list-item_error") )*/
@@ -174,6 +180,7 @@
 		{
 			this._input.classList.add("city-input_error");
 			this._parent.appendChild(this._chooseItem);
+			this._list.remove();
 		}
 	}
 
@@ -183,25 +190,46 @@
 				counterLI,
 				cities,
 				items = document.querySelectorAll(".list-item");
+				
+		/*this._parent.insertBefore(this._list, this._parent.nextElementSibling);*/
+		/*this._sibling = this._parent.nextElementSibling;
+		list = this._sibling.querySelector("ul[data-list]");*/
 		if( !counterLI && items.length > 5 ) 
 		{
 			this._list.appendChild(this._counterItem);
-			counter = document.querySelector(".list-length");
+			counter = document.querySelector(".list-length"),
+			itemsShown = document.querySelector("span.items-shown");
 			counterLI = document.querySelector("li[data-list-counter]");
 		} 
 		if( counterLI )
 		{
 			items = document.querySelectorAll(".list-item");
 			cities = items.length;
-			counter.innerText = cities;
+			counter.innerHTML = cities;
+			if( cities > 50 )
+			{
+				itemsShown.innerHTML = "20"; 
+			} else
+			{
+				[].forEach.call(items, function(i){
+					if(i.matches("li:nth-child(n + 6)")){
+						i.style.display = "none";
+					}
+				})
+				itemsShown.innerHTML = "5"; 
+			}
 		}
+
 	}
 
 	//Метод удаления счетчика списка городов при кол-ве вариантов < 5
 	Autocomplete.prototype._deleteCounter = function() {
 		var cities = document.querySelectorAll(
 			"li[data-list-item]"
-			);
+			),
+				list;
+		/*this._sibling = this._parent.nextElementSibling;
+		list = this._sibling.querySelector("ul[data-list]");*/
 		if( cities.length <= 5 ) {
 			[].forEach.call(this._list.children, function(i){
 				/*if( i.classList.contains("list-counter") ) */
@@ -218,11 +246,14 @@
 		var cities = document.querySelectorAll(
 			"li[data-list-item]"
 			),
-				counterLI = document.querySelector("li[data-list-counter]");
-				value = this._input.value;
+				counterLI = document.querySelector("li[data-list-counter]"),
+				value = this._input.value,
+				list;
+		/*this._sibling = this._parent.nextElementSibling;
+		list = this._sibling.querySelector("ul[data-list]");*/
 		for(var i = 0; i < cities.length; i++) 
 		{
-			if( cities[i].innerText.toLowerCase()
+			if( cities[i].innerHTML.toLowerCase()
 					.indexOf(value.toLowerCase()) !== 0 ) 
 			{
 				cities[i].remove();	
@@ -231,10 +262,11 @@
 		/*if( this._list.children.length >=2 && 
 					this._list.lastChild.classList
 					.contains("list-item_error") )*/
-		if( this._list.children.length >=2 &&
+		if( this._list && this._list.children.length >=2 &&
 				this._list.lastChild.matches(".list-item_error") )
 		{
 			this._list.removeChild(this._list.lastChild);
+			//list.remove();
 		}
 	}
 
@@ -243,9 +275,9 @@
 		var that = this;
 		this._list.addEventListener("click", function(e) {
 			if( e.target.nodeName === "LI" && 
-						e.target.className === "list-item" )
+						e.target.matches(".list-item") )
 			{
-				that._input.value = e.target.innerText;
+				that._input.value = e.target.innerHTML;
 				that._clearList.call(that);
 			}
 		});
@@ -256,11 +288,13 @@
 		/*while( this._list.firstChild && 
 						this._list.firstChild.classList
 						.contains("list-item") ) */
+		/*this._sibling = this._parent.nextElementSibling;
+		var list = this._sibling.querySelector("ul[data-list]");*/
 		while( this._list.firstChild &&
 						this._list.firstChild.matches(".list-item") )
 		{
 			this._list.removeChild(this._list.firstChild);
-			this._list.classList.remove("data-list_visible");
+			this._list.remove();
 		}
 		//Подчищаем "Не найдено" и счетчик большого кол-ва городов
 		/*if( this._list.firstChild && 
@@ -273,19 +307,28 @@
 					 		this._list.firstChild.matches(".list-counter")) )
 		{
 			this._list.removeChild(this._list.firstChild);
-			this._list.classList.remove("data-list_visible");
+			this._list.remove();
 		}
+		this._list.remove();
 	}
 	
 	//Метод-слушатель keyup
 	Autocomplete.prototype._keyupListen = function() {
 		var that = this;
 		this._input.addEventListener("keyup", function(){
+			var	end,
+				time,
+				start = performance.now();
+			
 			that._insertItem.call(that);
 			that._deleteItem.call(that);
 			that._insertCounterItem.call(that);
+			end = performance.now();
+			time = end - start;
+			console.log(time);
 			that._deleteCounter.call(that);
 			that._insertNotFound.call(that);
+			that._setListSmallMode.call(that);
 			if( !(this.value.length) ) 
 			{
 				that._clearList.call(that);
@@ -297,49 +340,43 @@
 	Autocomplete.prototype._focusListen = function() {
 		var that = this;
 		this._input.addEventListener("focus", function(){
-			/*if(this.classList.contains("city-input_error"))*/
-			if( this.matches(".city-input_error") )
-			{
-				this.select();
-				this.classList.remove("city-input_error");
-			}
-				
-			/*if( this.value.length && 
-						that._list.firstChild &&
-							this.value !== that._list.firstChild.innerText ) 
-			{
-				console.log("focused")
-				//that._insertItem.call(that);
-				that._insertNotFound.call(that);
-			}*/
-			
-			if( that._parent.lastChild === that._chooseItem ) 
-			{
+			this.select();
+			if( this.matches(".city-input_error") )				
+				this.classList.remove("city-input_error");	
+			if( that._parent.lastChild === that._chooseItem )
 				that._parent.removeChild(that._chooseItem);
-			}
 		});
 	}
 	
 	//Метод-слушатель blur
 	Autocomplete.prototype._blurListen = function() {
 		var that = this;
-		this._input.addEventListener("blur", function() {
-			that._insertChooseItem.call(that);
-			/*if( that._list.firstChild &&
-						that._list.firstChild.classList
-						.contains("list-item_error") ) */
-			if( that._list.firstChild &&
-						that._list.firstChild.matches(".list-item_error") )
+		//that._sibling = that._parent.nextElementSibling;
+		this._input.addEventListener("blur", function(e) {
+			/*that._list.addEventListener("click", function(){
+				e.scrollTopPropagation();
+				console.log("lll")
+			});*/
+				
+			
+			//that._clearList();
+			
+			//var list = that._sibling.querySelector("ul[data-list]");
+			if( that._list.firstElementChild &&
+						that._list.firstElementChild.matches(".list-item_error") )
 			{
-				that._list.classList.remove("data-list_visible");
+				//list.classList.remove("data-list_visible");
 				that._list.removeChild(that._list.firstChild);
+				that._list.remove();
+				that._insertChooseItem.call(that);
 			} else if( that._list.children.length === 1 &&
-									 that._list.firstChild &&
-										 that._list.firstChild.innerText ===
+										 that._list.firstElementChild.innerHTML ===
 											 that._input.value ) 
 			{
-				that._list.classList.remove("data-list_visible");
+				console.log("blurrrr")
+				//list.classList.remove("data-list_visible");
 				that._list.removeChild(that._list.firstChild);
+				that._list.remove();
 			}
 		});
 	}
@@ -348,20 +385,48 @@
 	Autocomplete.prototype._scrollListen = function() {
 		var delta,
 				isFirefox = (navigator.userAgent.indexOf("Gecko") !== -1);
-		this._list.addEventListener("mousewheel", function(e) {
+		
+
+			this._list.addEventListener("mousewheel", function(e) {
 			delta = e.wheelDelta;
 			this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
 		  e.preventDefault();
-		});
-		//Для Mozilla
-		if(isFirefox) 
-		{
-			this._list.addEventListener("DOMMouseScroll", function(e) {
-					delta = -e.detail;
-					this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
-				  e.preventDefault();
 			});
-		}
+			//Для Mozilla
+			if(isFirefox) 
+			{
+				this._list.addEventListener("DOMMouseScroll", function(e) {
+						delta = -e.detail;
+						this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+					  e.preventDefault();
+				});
+			}
+
+	}
+
+	//Фиксация счетчика городов внизу при прокрутке списка
+	Autocomplete.prototype._listScroll = function() {
+		var that = this,
+				bottom,
+				isFirefox = (navigator.userAgent.indexOf("Gecko") !== -1);
+			//mouswheel event
+			this._list.addEventListener("mousewheel", function(e){
+				bottom = "-" + (this.scrollTop);
+				that._counterItem.style.bottom = bottom + "px";
+			});
+			//для Mozilla
+			if(isFirefox) 
+			{
+				this._list.addEventListener("DOMMouseScroll", function(e) {
+						bottom = "-" + (this.scrollTop);
+						that._counterItem.style.bottom = bottom + "px";
+				});
+			}
+			//То же самое для scroll event
+			this._list.addEventListener("scroll", function(){
+				bottom = "-" + (this.scrollTop);
+				that._counterItem.style.bottom = bottom + "px";
+			}); 
 	}
 
 	//Метод для инициализации всех слушателей событий
@@ -371,6 +436,7 @@
 		this._blurListen();
 		this._scrollListen();
 		this._clickItem();
+		this._listScroll();
 	}
 
 	//Метод инициализации

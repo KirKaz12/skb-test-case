@@ -55,7 +55,7 @@ body {
 	background: #499dd9;
 	color: #fff;
 }
-.list-item:nth-child(n+6) {
+.list-item:nth-child(n+21) {
 	display: none;
 }
 .list-item:hover {
@@ -63,6 +63,8 @@ body {
 	color: #fff;
 }
 .list-counter {
+	position: absolute;
+  bottom: 0;
 	font: inherit;
 	padding: 10px;
 	background: #fff;
@@ -130,29 +132,31 @@ input[type="text"]:focus {
 	outline: none;
 }
 .data-list {
-	border-top: none;
-	display: none;
+	border: 1px solid #acacac;
 	position: absolute;
 	margin: 0;
 	padding: 0;
+	padding-bottom: 60px;
 	font: inherit;
 	list-style: none;
 	min-width: 350px;
 	max-height: 450px;
-	background: transparent;
+	background: #fff;
 	overflow-y: auto;
 	box-shadow: 15px 15px 25px -15px rgba(0, 0, 0, .3),
 							-15px 15px 25px -15px rgba(0, 0, 0, .3);
 }
 .data-list_visible {
 	display: block;
-	border: 1px solid #acacac;
 }
 .data-list__up {
 	bottom: 102%;
 	right: 0;
 	box-shadow: -15px -15px 25px -15px rgba(0, 0, 0, .3),
 							15px -15px 25px -15px rgba(0, 0, 0, .3);
+}
+.data-list__small {
+	padding-bottom: 0;
 }
 li {
 	font: inherit;
