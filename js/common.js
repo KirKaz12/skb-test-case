@@ -41,7 +41,7 @@
 	dataSortedUnique.forEach(function(i) {
 		var listItem = document.createElement("li");
 		listItem.classList.add("list-item");
-		listItem.setAttribute("data-list-item", "city-item");
+		listItem.setAttribute("data-list-item", "");
 		listItem.innerHTML = i["City"];
 		itemList.push(listItem);
 		listItem = null;
@@ -64,13 +64,6 @@
 		list.classList.add("data-list");
 		list.setAttribute("data-list", "");
 		this._list = list;
-		/*for(var i = 0; i < this._containerChildren.length; i++) {
-			if( this._containerChildren[i].matches(".data-list") )
-			{
-				this._list = this._containerChildren[i];
-				return;
-			}
-		}*/
 	}
 	
 	//Сеттер модификатора ul - спискa городов для открытия вверх при расстоянии в данном случае от низа окна не более 200px
@@ -79,20 +72,19 @@
 		if( offset <= 200 )
 			this._list.classList.add("data-list__up");
 	}
-
 	//Сеттер свойства, указывающего на элемент списка с сообщением "Не найдено"
 	Autocomplete.prototype._setNotFound = function() {
 		var notFound = document.createElement("li");
 		notFound.classList.add("list-item_error");
+		notFound.setAttribute("data-not-found", "");
 		notFound.innerHTML = "Не найдено";
 		this._notFound = notFound;
 	}
-
 	//Метод показа кол-ва элементов при большой выборке
 	Autocomplete.prototype._setCounterItem = function() {
 		var counterItem = document.createElement("li");
 		counterItem.innerHTML = 
-		"Показано <span class='items-shown'>5</span> из <span class='list-length'>0</span> найденных городов. Уточните запрос, чтобы увидеть остальные.";
+		"Показано <span class='items-shown' data-shown-number></span> из <span class='list-length' data-found-number></span> найденных городов. Уточните запрос, чтобы увидеть остальные.";
 		counterItem.classList.add("list-counter");
 		counterItem.setAttribute("data-list-counter", "");
 		this._counterItem = counterItem; 
@@ -101,15 +93,13 @@
 	//Сеттер свойства, указывающего на элемент c сообщением об ошибке при валидации
 	Autocomplete.prototype._setChooseItem = function() {
 		var chooseItem = document.createElement("span");
-		chooseItem.classList.add("city-notfound");
+		chooseItem.classList.add("choose-city");
+		chooseItem.setAttribute("data-choose-city", "");
 		chooseItem.innerHTML = "Выберите значение из списка";
 		this._chooseItem = chooseItem;
 	}
-
 	//Сеттер модификатора на список городов при кол-ве городов меньше или равном 5. Данный модификатор устанавливает отступ снизу = 0, так как счетчик городов в этом случае не показывается
 	Autocomplete.prototype._setListSmallMode = function() {
-		//this._sibling = this._parent.nextElementSibling;
-		//var list = this._sibling.querySelector("ul[data-list]");
 		if(this._list && this._list.children.length <= 5) {
 			this._list.classList.add("data-list__small");
 		} else {
@@ -117,7 +107,6 @@
 				this._list.classList.remove("data-list__small");
 		}
 	}
-
 	//Общий сеттер для всех свойств
 	Autocomplete.prototype._setAllProperties = function() {
 		this._setList();
@@ -131,9 +120,7 @@
 	Autocomplete.prototype._insertItem = function() {
 		var value = this._input.value,
 				list;
-		this._parent.insertBefore(this._list, this._parent.nextElementSibling);
-		/*this._sibling = this._parent.nextElementSibling;
-		list = this._sibling.querySelector("ul[data-list]");*/
+		this._parent.insertBefore(this._list, this._input.nextSibling);
 		if( value && !(value[0] === " ") ) 
 		{
 			for(var i = 0; i < itemList.length; i++) 
@@ -141,8 +128,6 @@
 				if( itemList[i].innerHTML.toLowerCase()
 					 .indexOf(value.toLowerCase()) === 0 ) 
 				{
-					
-					//this._list.classList.add("data-list_visible");
 					this._list.insertBefore(itemList[i], this._list.firstElementChild);
 				}
 			}
@@ -154,86 +139,72 @@
 	Autocomplete.prototype._insertNotFound = function() {
 		var value = this._input.value,
 				list;
-		this._parent.insertBefore(this._list, this._parent.nextElementSibling);
-		/*this._sibling = this._parent.nextElementSibling;
-		list = this._sibling.querySelector("ul[data-list]");*/
+		this._parent.insertBefore(this._list, this._input.nextSibling);
 		if( value && this._list.children.length === 0 ) 
 		{
 			this._list.classList.add("data-list_visible");
 			this._list.appendChild(this._notFound);
 		}
 	}
-
 	//Валидация
 	Autocomplete.prototype._insertChooseItem = function() {
-		var value = this._input.value,
-				list;
-		this._parent.insertBefore(this._list, this._parent.nextElementSibling);
-		/*this._sibling = this._parent.nextElementSibling;
-		list = this._sibling.querySelector("ul[data-list]");*/
-		/*if( value && 
-					this._list.firstChild &&
-					  this._list.firstChild.classList.contains("list-item_error") )*/
+		var value = this._input.value;
 			if( value &&
-					this._list.firstChild &&
-						this._list.firstChild.matches(".list-item_error") )
+						this._list.firstElementChild.matches("li[data-not-found]") )
 		{
 			this._input.classList.add("city-input_error");
 			this._parent.appendChild(this._chooseItem);
 			this._list.remove();
 		}
 	}
-
 	//Метод добавления счетчика списка городов при кол-ве вариантов > 5
 	Autocomplete.prototype._insertCounterItem = function() {
 		var counter,
 				counterLI,
 				cities,
-				items = document.querySelectorAll(".list-item");
-				
-		/*this._parent.insertBefore(this._list, this._parent.nextElementSibling);*/
-		/*this._sibling = this._parent.nextElementSibling;
-		list = this._sibling.querySelector("ul[data-list]");*/
+				items = this._container.querySelectorAll("li[data-list-item]");
+		[].forEach.call(items, function(i){
+			i.style.display = "";
+		}); 
 		if( !counterLI && items.length > 5 ) 
 		{
 			this._list.appendChild(this._counterItem);
-			counter = document.querySelector(".list-length"),
-			itemsShown = document.querySelector("span.items-shown");
-			counterLI = document.querySelector("li[data-list-counter]");
+			counter = this._container.querySelector("span[data-found-number]"),
+			itemsShown = this._container.querySelector("span[data-shown-number]");
+			counterLI = this._container.querySelector("li[data-list-counter]");
 		} 
 		if( counterLI )
 		{
-			items = document.querySelectorAll(".list-item");
 			cities = items.length;
 			counter.innerHTML = cities;
 			if( cities > 50 )
 			{
-				itemsShown.innerHTML = "20"; 
+				itemsShown.innerHTML = "20";
+				[].forEach.call(items, function(i){
+					if(i.matches("li[data-list-item]:nth-child(n + 21)")){
+						i.style.display = "none";
+					}
+				}); 
 			} else
 			{
 				[].forEach.call(items, function(i){
-					if(i.matches("li:nth-child(n + 6)")){
+					if(i.matches("li[data-list-item]:nth-child(n + 6)")){
 						i.style.display = "none";
 					}
-				})
+				});
 				itemsShown.innerHTML = "5"; 
 			}
 		}
-
 	}
-
 	//Метод удаления счетчика списка городов при кол-ве вариантов < 5
 	Autocomplete.prototype._deleteCounter = function() {
-		var cities = document.querySelectorAll(
+		var cities = this._container.querySelectorAll(
 			"li[data-list-item]"
 			),
 				list;
-		/*this._sibling = this._parent.nextElementSibling;
-		list = this._sibling.querySelector("ul[data-list]");*/
 		if( cities.length <= 5 ) {
 			[].forEach.call(this._list.children, function(i){
-				/*if( i.classList.contains("list-counter") ) */
-				if(i.matches(".list-counter"))
+				if(i.matches("li[data-list-counter]"))
 				{
 					i.remove();
 				}
@@ -243,14 +214,11 @@
 
 	//Метод удаления города из списка при несоответствии введенному значению
 	Autocomplete.prototype._deleteItem = function() {
-		var cities = document.querySelectorAll(
+		var cities = this._container.querySelectorAll(
 			"li[data-list-item]"
 			),
-				counterLI = document.querySelector("li[data-list-counter]"),
-				value = this._input.value,
-				list;
-		/*this._sibling = this._parent.nextElementSibling;
-		list = this._sibling.querySelector("ul[data-list]");*/
+				counterLI = this._container.querySelector("li[data-list-counter]"),
+				value = this._input.value;
 		for(var i = 0; i < cities.length; i++) 
 		{
 			if( cities[i].innerHTML.toLowerCase()
@@ -259,14 +227,10 @@
 				cities[i].remove();	
 			}
 		}
-		/*if( this._list.children.length >=2 && 
-					this._list.lastChild.classList
-					.contains("list-item_error") )*/
 		if( this._list && this._list.children.length >=2 &&
-				this._list.lastChild.matches(".list-item_error") )
+				this._list.lastChild.matches("li[data-not-found]") )
 		{
 			this._list.removeChild(this._list.lastChild);
-			//list.remove();
 		}
 	}
 
@@ -275,7 +239,7 @@
 		var that = this;
 		this._list.addEventListener("click", function(e) {
 			if( e.target.nodeName === "LI" && 
-						e.target.matches(".list-item") )
+						e.target.matches("li[data-list-item]") )
 			{
 				that._input.value = e.target.innerHTML;
 				that._clearList.call(that);
@@ -285,26 +249,16 @@
 	
 	//Метод очищения списка
 	Autocomplete.prototype._clearList = function() {
-		/*while( this._list.firstChild && 
-						this._list.firstChild.classList
-						.contains("list-item") ) */
-		/*this._sibling = this._parent.nextElementSibling;
-		var list = this._sibling.querySelector("ul[data-list]");*/
 		while( this._list.firstChild &&
-						this._list.firstChild.matches(".list-item") )
+						this._list.firstChild.matches("li[data-list-item]") )
 		{
 			this._list.removeChild(this._list.firstChild);
 			this._list.remove();
 		}
 		//Подчищаем "Не найдено" и счетчик большого кол-ва городов
-		/*if( this._list.firstChild && 
-				(this._list.firstChild.classList
-				.contains("list-item_error") || 
-					this._list.firstChild.classList
-					.contains("list-counter")) ) */
 		if( this._list.firstChild &&
-					(this._list.firstChild.matches(".list-item_error") ||
-					 		this._list.firstChild.matches(".list-counter")) )
+					(this._list.firstChild.matches("li[data-not-found]") ||
+					 		this._list.firstChild.matches("li[data-list-counter]")) )
 		{
 			this._list.removeChild(this._list.firstChild);
 			this._list.remove();
@@ -315,17 +269,10 @@
 	//Метод-слушатель keyup
 	Autocomplete.prototype._keyupListen = function() {
 		var that = this;
-		this._input.addEventListener("keyup", function(){
-			var	end,
-				time,
-				start = performance.now();
-			
+		this._input.addEventListener("keyup", function(){		
 			that._insertItem.call(that);
 			that._deleteItem.call(that);
 			that._insertCounterItem.call(that);
-			end = performance.now();
-			time = end - start;
-			console.log(time);
 			that._deleteCounter.call(that);
 			that._insertNotFound.call(that);
 			that._setListSmallMode.call(that);
@@ -351,30 +298,17 @@
 	//Метод-слушатель blur
 	Autocomplete.prototype._blurListen = function() {
 		var that = this;
-		//that._sibling = that._parent.nextElementSibling;
 		this._input.addEventListener("blur", function(e) {
-			/*that._list.addEventListener("click", function(){
-				e.scrollTopPropagation();
-				console.log("lll")
-			});*/
-				
-			
-			//that._clearList();
-			
-			//var list = that._sibling.querySelector("ul[data-list]");
 			if( that._list.firstElementChild &&
-						that._list.firstElementChild.matches(".list-item_error") )
+						that._list.firstElementChild.matches("li[data-not-found]") )
 			{
-				//list.classList.remove("data-list_visible");
+				that._insertChooseItem.call(that);
 				that._list.removeChild(that._list.firstChild);
 				that._list.remove();
-				that._insertChooseItem.call(that);
 			} else if( that._list.children.length === 1 &&
 										 that._list.firstElementChild.innerHTML ===
 											 that._input.value ) 
 			{
-				console.log("blurrrr")
-				//list.classList.remove("data-list_visible");
 				that._list.removeChild(that._list.firstChild);
 				that._list.remove();
 			}
@@ -429,14 +363,22 @@
 			}); 
 	}
 
+	Autocomplete.prototype._bodyClick = function(){
+		var that = this;
+		document.body.addEventListener("click", function(e){
+			if(e.target.matches("input") && !(e.target === that._input) )
+				that._clearList.call(that);
+		});
+	}
 	//Метод для инициализации всех слушателей событий
 	Autocomplete.prototype._triggerAllListeners = function() {
 		this._keyupListen();
 		this._focusListen();
-		this._blurListen();
 		this._scrollListen();
 		this._clickItem();
 		this._listScroll();
+		this._blurListen();
+		this._bodyClick();
 	}
 
 	//Метод инициализации

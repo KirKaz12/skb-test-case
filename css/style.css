@@ -36,7 +36,7 @@ body {
 .city-input_error:hover {
 	border-top-color: red;
 }
-.city-notfound {
+.choose-city {
 	display: block;
 	position: absolute;
 	font: inherit;
@@ -54,9 +54,6 @@ body {
 .list-item:first-child {
 	background: #499dd9;
 	color: #fff;
-}
-.list-item:nth-child(n+21) {
-	display: none;
 }
 .list-item:hover {
 	background: #499dd9;
@@ -150,7 +147,7 @@ input[type="text"]:focus {
 	display: block;
 }
 .data-list__up {
-	bottom: 102%;
+	bottom: 185%;
 	right: 0;
 	box-shadow: -15px -15px 25px -15px rgba(0, 0, 0, .3),
 							15px -15px 25px -15px rgba(0, 0, 0, .3);
