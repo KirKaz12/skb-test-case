@@ -51,7 +51,7 @@ body {
 	background: #fff;
 	cursor: pointer;
 }
-.list-item:first-child {
+.list-item_active {
 	background: #499dd9;
 	color: #fff;
 }
@@ -133,7 +133,6 @@ input[type="text"]:focus {
 	position: absolute;
 	margin: 0;
 	padding: 0;
-	padding-bottom: 60px;
 	font: inherit;
 	list-style: none;
 	min-width: 350px;
@@ -143,8 +142,12 @@ input[type="text"]:focus {
 	box-shadow: 15px 15px 25px -15px rgba(0, 0, 0, .3),
 							-15px 15px 25px -15px rgba(0, 0, 0, .3);
 }
-.data-list_visible {
+.data-list:after {
+	content: '';
 	display: block;
+	position: relative;
+	height: 60px;
+	background: transparent;
 }
 .data-list__up {
 	bottom: 185%;
@@ -152,8 +155,8 @@ input[type="text"]:focus {
 	box-shadow: -15px -15px 25px -15px rgba(0, 0, 0, .3),
 							15px -15px 25px -15px rgba(0, 0, 0, .3);
 }
-.data-list__small {
-	padding-bottom: 0;
+.data-list__small:after {
+	height: 0;
 }
 li {
 	font: inherit;
