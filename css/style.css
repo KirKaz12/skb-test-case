@@ -55,15 +55,11 @@ body {
 	background: #499dd9;
 	color: #fff;
 }
-.list-item:hover {
-	background: #499dd9;
-	color: #fff;
-}
 .list-counter {
 	position: absolute;
   bottom: 0;
 	font: inherit;
-	padding: 10px;
+	padding: 5px 10px;
 	background: #fff;
 	font-size: 12px;
 	color: grey;

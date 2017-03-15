@@ -15,7 +15,7 @@
 	 		value: elem["City"].toLowerCase()
 	 	}
 	 });
-
+	 //Сортировка по алфавиту
 	 mapData.sort(function(a, b) {
 	 	return +(a.value < b.value) || +(a.value === b.value) - 1;
 	 });
@@ -23,7 +23,7 @@
 	 dataSorted = mapData.map(function(elem) {
 	 	return dataCopy[elem.index];
 	 });
-
+	 //Добавление в массив отсортированных данных и удаление бессмысленных значений типа "34км" и "36км"
 	 for(var i = 0; i<dataSorted.length; i++) {
 	 	if( (dataSorted[i]["City"].slice(-2) !== "км") && 
 	 		dataSorted[i+1] &&
@@ -51,10 +51,10 @@
 
 	//Конструктор класса Autocomplete
 	function Autocomplete(input) {
-		this._input = input;
-		this._parent = this._input.parentElement;
-		this._container = this._parent.parentElement;
-		this._containerChildren = this._container.children;
+		this._input = input; //Входящий input
+		this._parent = this._input.parentElement; //Родитель
+		this._container = this._parent.parentElement; //Контейнер
+		this._controlKeys = [9, 13, 27, 38, 40];//Коды кнопок, задействованных в управлении с клавиатуры 
 	}
 
   //Сеттер свойства, соотвентсвтующего элементу ul - список городов
@@ -71,6 +71,7 @@
 		if( offset <= 200 )
 			this._list.classList.add("data-list__up");
 	}
+
 	//Сеттер свойства, указывающего на элемент списка с сообщением "Не найдено"
 	Autocomplete.prototype._setNotFound = function() {
 		var notFound = document.createElement("li");
@@ -79,7 +80,8 @@
 		notFound.innerHTML = "Не найдено";
 		this._notFound = notFound;
 	}
-	//Метод показа кол-ва элементов при большой выборке
+
+	//Сеттер свойства, указывающего на элемент "счетчик" отсортированных городов. Показывает кол-во найденных городов внизу списка
 	Autocomplete.prototype._setCounterItem = function() {
 		var counterItem = document.createElement("li");
 		counterItem.innerHTML = 
@@ -97,8 +99,9 @@
 		chooseItem.innerHTML = "Выберите значение из списка";
 		this._chooseItem = chooseItem;
 	}
+
 	//Сеттер модификатора на список городов при кол-ве городов меньше или равном 5. Данный модификатор устанавливает отступ снизу = 0, так как счетчик городов в этом случае не показывается
-	Autocomplete.prototype._setListSmallMode = function() {
+	Autocomplete.prototype._setListSmall = function() {
 		if(this._list && this._list.children.length <= 5) {
 			this._list.classList.add("data-list__small");
 		} else {
@@ -106,6 +109,7 @@
 				this._list.classList.remove("data-list__small");
 		}
 	}
+
 	//Общий сеттер для всех свойств
 	Autocomplete.prototype._setAllProperties = function() {
 		this._setList();
@@ -117,22 +121,56 @@
 
 	//Метод добавления города в список при соответствии запросу
 	Autocomplete.prototype._insertItem = function() {
-		var value = this._input.value;
-		if( value && !(value[0] === " ") ) 
+		var value = this._input.value,
+				items;
+		if( value && value[0] !== " " ) 
 		{
+			//Заполняем список
 			for(var i = 0; i < itemList.length; i++) 
 			{
 				if( itemList[i].innerHTML.toLowerCase()
 					.indexOf(value.toLowerCase()) === 0 ) 
 				{
 					this._list.insertBefore(itemList[i], this._list.firstElementChild);
-				}
+				} 
 			}
+			//Отменяем метод при отсутствии совпадений
+			if(!this._list.firstElementChild) return;
+			
+			items = this._list.children;
+			[].forEach.call(items, function(i){
+				//Проверяем наличие активных элементов списка
+				if( i.matches("li[data-active-item]") ) 
+				{
+					//Удаляем соответствующий модификатор и атрибут во избежание размножения активных элементов при следующих итерациях 
+					i.classList.remove("list-item_active");
+					i.removeAttribute("data-active-item");
+				}
+				//Проверка числа найденных городов
+				if( items.length > 50 )
+				{
+					//Показываем 20 городов при числе найденных > 50
+					if(i.matches("li[data-list-item]:nth-child(n + 21)"))
+						i.style.display = "none";
+				} else {
+					//Показываем 5 городов при числе найденных < 50
+					if(i.matches("li[data-list-item]:nth-child(n + 6)")){
+						i.style.display = "none";
+					}
+				}
+			});
+			//Делаем первый элемент активным по умолчанию
+			if( this._list.firstElementChild
+					.matches("li[data-list-item]") )
+			{
+				this._list.firstElementChild.classList.add("list-item_active");
+				this._list.firstElementChild.setAttribute("data-active-item", "");
+			}
+			//Вставляем сформированный список в DOM
 			this._parent.insertBefore(this._list, this._input.nextSibling);
-			this._list.firstElementChild.classList.add("list-item_active");
-			this._list.firstElementChild.setAttribute("data-active-item", "");
 		}
 	} 
+
 	//Метод добавления "Не найдено" в список при несоответствии запросу 
 	Autocomplete.prototype._insertNotFound = function() {
 		var value = this._input.value;
@@ -142,7 +180,8 @@
 			this._parent.insertBefore(this._list, this._input.nextSibling);
 		}
 	}
-	//Валидация
+
+	//Валидация. Вызывается при потере фокуса
 	Autocomplete.prototype._insertChooseItem = function() {
 		var value = this._input.value;
 		if( value &&
@@ -153,12 +192,14 @@
 			this._list.remove();
 		}
 	}
-	//Метод добавления счетчика списка городов при кол-ве вариантов > 5
+
+	//Метод добавления элемента списка - "счетчика" найденных городов при кол-ве вариантов > 5
 	Autocomplete.prototype._insertCounterItem = function() {
 		var counter,
 		counterLI,
 		cities,
 		items = this._container.querySelectorAll("li[data-list-item]");
+		//Делаем все элементы видимыми по умолчанию("обнуляем" none)
 		[].forEach.call(items, function(i){
 			i.style.display = "";
 		});
@@ -166,40 +207,43 @@
 		if( !counterLI && items.length > 5 ) 
 		{
 			this._list.appendChild(this._counterItem);
+			//Количество найденных городов
 			counter = this._container.querySelector("span[data-found-number]"),
+			//Количество показанных в списке городов
 			itemsShown = this._container.querySelector("span[data-shown-number]");
+			//Элемент - счетчик
 			counterLI = this._container.querySelector("li[data-list-counter]");
 			counterLI.style.bottom = "0px";
 		} 
 		if( counterLI )
 		{
+			//Вставляем информацию о найденных городах
 			cities = items.length;
 			counter.innerHTML = cities;
 			if( cities > 50 )
 			{
 				itemsShown.innerHTML = "20";
-				[].forEach.call(items, function(i){
+				
+/*				[].forEach.call(items, function(i){
 					if(i.matches("li[data-list-item]:nth-child(n + 21)")){
 						i.style.display = "none";
 					}
-				}); 
+				}); */
 			} else
 			{
-				[].forEach.call(items, function(i){
+/*				[].forEach.call(items, function(i){
 					if(i.matches("li[data-list-item]:nth-child(n + 6)")){
 						i.style.display = "none";
 					}
-				});
+				});*/
 				itemsShown.innerHTML = "5"; 
 			}
 		}
 	}
+
 	//Метод удаления счетчика списка городов при кол-ве вариантов < 5
 	Autocomplete.prototype._deleteCounter = function() {
-		var cities = this._container.querySelectorAll(
-			"li[data-list-item]"
-			),
-		list;
+		var cities = this._list.querySelectorAll("li[data-list-item]");
 		if( cities.length <= 5 ) {
 			[].forEach.call(this._list.children, function(i){
 				if(i.matches("li[data-list-counter]"))
@@ -210,12 +254,12 @@
 		}
 	}
 
-	//Метод удаления города из списка при несоответствии введенному значению
+	//Метод удаления города из списка при несоответствии началу введенного значения
 	Autocomplete.prototype._deleteItem = function() {
-		var cities = this._container.querySelectorAll(
+		var cities = this._list.querySelectorAll(
 			"li[data-list-item]"
 			),
-		counterLI = this._container.querySelector("li[data-list-counter]"),
+		counterLI = this._list.querySelector("li[data-list-counter]"),
 		value = this._input.value;
 		for(var i = 0; i < cities.length; i++) 
 		{
@@ -225,7 +269,8 @@
 				cities[i].remove();	
 			}
 		}
-		if( this._list && this._list.children.length >=2 &&
+		//Удаление элемента с текстом "Не найдено" при хотя бы одном совпадении
+		if( this._list.children.length >= 2 &&
 			this._list.lastChild.matches("li[data-not-found]") )
 		{
 			this._list.removeChild(this._list.lastChild);
@@ -244,67 +289,124 @@
 			}
 		});
 	}
+
+	Autocomplete.prototype._activateItem = function(elem) {
+		elem.classList.add("list-item_active");
+		elem.setAttribute("data-active-item", "");
+	}
 	
-	//Метод полного очищения списка
+	Autocomplete.prototype._deactivateItem = function(elem) {
+		elem.classList.remove("list-item_active");
+		elem.removeAttribute("data-active-item");
+	}
+
+	//Метод полного очищения списка и удаления из DOM
 	Autocomplete.prototype._clearList = function() {
-		while( this._list.firstChild &&
-			this._list.firstChild.matches("li[data-list-item]") )
+		while( this._list.firstChild /*&&
+			this._list.firstChild.matches("li[data-list-item]")*/ )
 		{
 			this._list.removeChild(this._list.firstChild);
-			this._list.remove();
 		}
 		//Подчищаем "Не найдено" и счетчик кол-ва городов
-		if( this._list.firstChild &&
+/*		if( this._list.firstChild &&
 			(this._list.firstChild.matches("li[data-not-found]") ||
 				this._list.firstChild.matches("li[data-list-counter]")) )
 		{
 			this._list.removeChild(this._list.firstChild);
 			this._list.remove();
-		}
+		}*/
 		this._list.remove();
 	}
 	
-	//Работа с клавиатурой
-	Autocomplete.prototype._keyInteraction = function(e, active){
-		var nextActive = active.nextElementSibling;
-				prevActive = active.previousElementSibling;
-		if(e.keyCode === 40)// Кнопка "вниз"
-		{
-			if( nextActive && nextActive.matches("li[data-list-item]") && (nextActive.style.display !== "none"))
-			{
-				console.log("work")
-				active.classList.remove("list-item_active");
-				active.removeAttribute("data-active-item");
-				nextActive.classList.add("list-item_active");
-				nextActive.setAttribute("data-active-item", "");
-			}
-		}
-		if(e.keyCode === 27) //Убираем список при нажатии на ESC
-			this._clearList();
-		if(e.keyCode === 13) //Выбор значения по нажатию на Enter
-		{
-			this._input.value = active.innerText;
-			this._clearList();
-		}
-			
+	//Управление выбором с клавиатуры
+	Autocomplete.prototype._keyInteraction = function(e){
+		var active = this._list.querySelector("li[data-active-item]"),
+				nextActive = active.nextElementSibling,//нижний сосед активного элемента
+				prevActive = active.previousElementSibling;//верхний сосед активного элемента
+		switch (e.keyCode) {
+			case 40://Стрелка вниз
+				if( nextActive && nextActive.matches("li[data-list-item]") && (nextActive.style.display !== "none") )
+				{
+					//Скролим список вниз при достижении последнего видимого элемента
+					if( active.offsetTop >= 360 )
+					{
+						this._list.scrollTop += active.clientHeight;
+					}
+					//Меняем активный элемент
+					this._activateItem(nextActive);
+					this._deactivateItem(active);
+/*					nextActive.classList.add("list-item_active");
+					nextActive.setAttribute("data-active-item", "");
+					active.classList.remove("list-item_active");
+					active.removeAttribute("data-active-item");*/
+				}
+				break;
+			case 38://Стрелка вверх
+				if( prevActive && prevActive.matches("li[data-list-item]") )
+				{
+					//Скролим вверх при достижении верхнего элемента
+					if( this._list.scrollTop !== 0 &&
+							( this._list.scrollTop > active.offsetTop ||
+								this._list.scrollTop > prevActive.offsetTop))
+					{
+						this._list.scrollTop -= active.clientHeight;
+					}
+					//Меняем активный элемент
+/*					prevActive.classList.add("list-item_active");
+					prevActive.setAttribute("data-active-item", "");
+					active.classList.remove("list-item_active");
+					active.removeAttribute("data-active-item");*/
+					this._activateItem(prevActive);
+					this._deactivateItem(active);
+				}
+				break;
+			case 27://Esc. Убираем список
+				this._clearList();
+				break;
+			case 13://Enter - выбор активного элемента списка
+				this._input.value = active.innerText;
+				this._clearList();
+				break;
+			case 9: //Нажатие TAB - переход к следующему контролу, очищаем текущий
+				this._clearList();
+				break;
+		}		
 	}
 
 	//Метод-слушатель keyup
 	Autocomplete.prototype._keyupListen = function() {
-		var that = this,
-				active;
-		this._input.addEventListener("keyup", function(e){	
-			that._insertItem.call(that);
-			that._deleteItem.call(that);
-			that._insertCounterItem.call(that);
-			that._deleteCounter.call(that);
-			that._insertNotFound.call(that);
-			that._setListSmallMode.call(that);
-			active = that._list.querySelector("li[data-active-item]");
-			that._keyInteraction.call(that, e, active);
+		var that = this;
+		this._input.addEventListener("keyup", function(e){ 
+			if( that._controlKeys.indexOf(e.keyCode) === -1)	
+			{
+				//Последовательный вызов методов для формирования списка
+				that._insertItem.call(that);
+				that._deleteItem.call(that);
+				that._insertCounterItem.call(that);
+				that._deleteCounter.call(that);
+				that._insertNotFound.call(that);
+				that._setListSmall.call(that);
+			}
+			//Убираем список если поле ввода становится пустым
+			if( !this.value ) {
+				that._clearList();
+			}			
 		});
 	}
 	
+	Autocomplete.prototype._keyDown = function() {
+		var that = this;
+		this._input.addEventListener("keydown", function(e){
+			if( that._controlKeys.indexOf(e.keyCode) !== -1)
+			{
+				if( that._list.firstChild && 
+							that._list.firstChild.
+							matches("li[data-list-item]") )
+					that._keyInteraction.call(that, e);
+			}
+		});
+	}
+
 	//Метод-слушатель focus
 	Autocomplete.prototype._focusListen = function() {
 		var that = this;
@@ -382,22 +484,54 @@
 			}); 
 		}
 
-		Autocomplete.prototype._bodyClick = function(){
-			var that = this;
-			document.body.addEventListener("click", function(e){
-				if(e.target.matches("input") && !(e.target === that._input) )
-					that._clearList.call(that);
-			});
-		}
+	//Очищаем список при фокусе на любой другой input на странице
+	Autocomplete.prototype._bodyClick = function(){
+		var that = this;
+		document.body.addEventListener("click", function(e){
+			if(e.target.matches("input") && !(e.target === that._input) )
+				that._clearList.call(that);
+		});
+	}
+
+	Autocomplete.prototype._mouseEnter = function() {
+		var that = this,
+				cities;
+		this._list.addEventListener("mouseover", function(e){
+			cities = that._list.children;
+			if(e.target.matches("li[data-list-item]")) {
+				[].forEach.call(cities, function(i){
+					if(i.matches("li[data-active-item]"))
+					{
+/*						i.classList.remove("list-item_active");
+						i.removeAttribute("data-active-item");*/
+						that._deactivateItem(i);
+					}
+				});
+/*				e.target.classList.add("list-item_active");
+				e.target.setAttribute("data-active-item", "");*/
+				that._activateItem(e.target);
+			}
+		});
+		this._list.addEventListener("mouseout", function(e){
+			cities = that._list.children;
+/*			e.target.classList.remove("list-item_active");
+			e.target.removeAttribute("data-active-item");*/
+			that._deactivateItem(e.target);
+			that._activateItem(cities[0]);
+		});
+	}
+
 	//Метод для инициализации всех слушателей событий
 	Autocomplete.prototype._triggerAllListeners = function() {
 		this._keyupListen();
+		this._keyDown();
 		this._focusListen();
 		this._scrollListen();
 		this._clickItem();
 		this._listScroll();
 		this._blurListen();
 		this._bodyClick();
+		this._mouseEnter();
 	}
 
 	//Метод инициализации
@@ -412,5 +546,15 @@
 
 	inputOnTop.InitAutocomplete();
 	inputOnBottom.InitAutocomplete();
-	
+/*	function autocomplete() {
+		var autocompleteElement = new Autocomplete(this);
+		autocompleteElement.InitAutocomplete();
+		return autocompleteElement;
+	}
+	window.autocomplete = autocomplete;*/
 })();
+
+/*var inputs = document.querySelectorAll("input[data-input]");
+console.log(inputs)
+inputs[0].autocomplete();
+inputs[1].autocomplete();*/
