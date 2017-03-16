@@ -88,7 +88,7 @@ label::before {
 	left: -60px;
 	top: 0;
 }
-
+/* 
 .dropdown-icon {
 	font-family: 'konturiconicecowebfont';
 	position: absolute;
@@ -103,7 +103,7 @@ label::before {
 .dropdown-icon__hidden {
 	transition: opacity .25s ease-in-out;
 	opacity: 0;
-}
+} */
 
 /* input:focus  */
 
