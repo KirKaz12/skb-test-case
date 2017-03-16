@@ -24,7 +24,9 @@
 	 dataSorted = mapData.map(function(elem) {
 	 	return dataCopy[elem.index];
 	 });
-	 //Добавление в вспомогательный массив данных с сортировкой повторяющихся названий, а также бессмысленных значений типа "34км" и "36км"
+	 
+	 //Создаем dataSortedUnique - отсортированные данные в формате JSON, которые будем отображать
+	 //Проходимся циклом по dataSorted и заполняем dataSortedUnique, не включая повторяющиеся эелементы
 	for(var i = 0; i<dataSorted.length; i++) {
 	 	if( (dataSorted[i]["City"].slice(-2) !== "км") && 
 	 		dataSorted[i+1] &&
@@ -33,29 +35,30 @@
 	 		dataSortedUnique.push( dataSorted[i] );
 	 	}
 	}
-	//Убираем вспомогательные массивы, в том числе data из global scope
+	//Убираем вспомогательные массивы, в том числе data из global scope. Остается только dataSortedUnique
 	data = dataCopy = mapData = dataSorted = null;
 	
 	//Добавление в массив itemList элементов li с названиями городов из отсортированных данных
-	dataSortedUnique.forEach(function(i) {
+/*	dataSortedUnique.forEach(function(i) {
 		var listItem = document.createElement("li");
 		listItem.classList.add("list-item");
 		listItem.setAttribute("data-list-item", "");
 		listItem.innerHTML = i["City"];
 		itemList.push(listItem);
 		listItem = null;
-	});
+	});*/
 	//Убираем вспомогательный массив
-	dataSortedUnique = null;
+	//dataSortedUnique = null;
 
 
 	// ========== Конструктор класса Autocomplete ==========
 
 	function Autocomplete(input) {
 		this._input = input; //Входящий input
-		this._parent = this._input.parentElement; //Родитель
+		this._parent = this._input.parentElement; //Родитель input
 		this._container = this._parent.parentElement; //Контейнер
 		this._controlKeys = [9, 13, 27, 38, 40];//Коды кнопок, задействованных в управлении с клавиатуры 
+		this._fragment = document.createDocumentFragment();//Фрагмент, который будет заполняться элементами li с названиями городов
 	}
 
 
@@ -132,14 +135,34 @@
 		if( value && value[0] !== " " ) 
 		{
 			//Заполняем список
-			for(var i = 0; i < itemList.length; i++) 
+/*			for(var i = 0; i < itemList.length; i++) 
 			{
 				if( itemList[i].innerHTML.toLowerCase()
 					.indexOf(value.toLowerCase()) === 0 ) 
 				{
 					this._list.insertBefore(itemList[i], this._list.firstElementChild);
 				} 
-			}
+			}*/
+			//Очищаем элементы списка с предыдущего вызова метода во избежание дублирования
+			this._list.innerHTML = "";
+			//Проходимся по массиву с данными
+			dataSortedUnique.forEach(function(i){
+				var city = i["City"].toLowerCase();
+				value = value.toLowerCase();
+				if( city.indexOf(value) === 0 )
+				{
+					var element = document.createElement("li");
+					element.classList.add("list-item");
+					element.setAttribute("data-list-item", "");
+					element.innerHTML = i["City"];
+					that._fragment.insertBefore(element, that._fragment.firstChild);
+					element = null;
+				}
+			});
+			this._list.insertBefore(this._fragment, this._list.firstChild);
+			//listFragment = null;
+			//console.dir(listFragment);
+
 			//Отменяем метод при отсутствии совпадений
 			if(!this._list.firstElementChild) return;
 			
@@ -190,7 +213,7 @@
 		cities,
 		items = this._container.querySelectorAll("li[data-list-item]");
 		
-		//Делаем все элементы видимыми по умолчанию
+		//Делаем все невидимые элементы с предыдущего вызова видимыми - обнуляем display: none
 		[].forEach.call(items, function(i){
 			i.style.display = "";
 		});
@@ -231,14 +254,16 @@
 
 	//Метод удаления счетчика списка городов при кол-ве вариантов < 5
 	Autocomplete.prototype._deleteCounter = function() {
-		var cities = this._list.querySelectorAll("li[data-list-item]");
-		if( cities.length <= 5 ) {
-			[].forEach.call(this._list.children, function(i){
+		var cities = this._list.querySelectorAll("li[data-list-item]"),
+				counter = this._list.querySelector("li[data-list-counter]");
+		if( cities.length <= 5  && counter) {
+			counter.remove();
+			/*[].forEach.call(this._list.children, function(i){
 				if(i.matches("li[data-list-counter]"))
 				{
 					i.remove();
 				}
-			});
+			});*/
 		}
 	}
 
@@ -368,7 +393,12 @@
 			if( that._controlKeys.indexOf(e.keyCode) === -1)	
 			{
 				//Формируем список
+				var start, end, time;
+				start = performance.now();
 				that._createList.call(that);
+				end = performance.now();
+				time = end - start;
+				console.log(time);
 			}
 			//Убираем список если поле ввода становится пустым
 			if( !this.value ) {
