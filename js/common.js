@@ -1,11 +1,12 @@
 ;(function(){
 
 	var mapData,// Вспомогательный массив для сортировки
-		dataSorted,// Вспомогательный массив для сортировки
-		dataSortedUnique = [],//Здесь соберутся отсортированные уникальные данные из JSON
-		itemList = [],//Массив, который заполнится элементами li с данными из JSON
+		dataToSort,// Вспомогательный массив для сортировки
+		sortedData = [],//Здесь соберутся отсортированные данные из JSON
 		inputs = document.querySelectorAll("input[data-input]"),
-		dataCopy = data.slice(); //Копия JSON-массива. Для сортировки
+		
+		//Копируем JSON-массив, где data - исходный JSON, находящийся в глобальном scope. В реалии, data "приезжает" с сервера посредством AJAX 
+		dataCopy = data.slice(); 
 
 
 	// ========== Сортировка входящего массива JSON ==========
@@ -21,34 +22,27 @@
 	 	return +(a.value < b.value) || +(a.value === b.value) - 1;
 	 });
 
-	 dataSorted = mapData.map(function(elem) {
+	 dataToSort = mapData.map(function(elem) {
 	 	return dataCopy[elem.index];
 	 });
 	 
-	 //Создаем dataSortedUnique - отсортированные данные в формате JSON, которые будем отображать
-	 //Проходимся циклом по dataSorted и заполняем dataSortedUnique, не включая повторяющиеся эелементы
-	for(var i = 0; i<dataSorted.length; i++) {
-	 	if( (dataSorted[i]["City"].slice(-2) !== "км") && 
-	 		dataSorted[i+1] &&
-	 		(dataSorted[i]["City"] !== dataSorted[i+1]["City"]) ) 
+	 //Создаем sortedData - отсортированные данные в формате JSON, которые будем отображать
+	 //Проходимся циклом по dataSorted и заполняем sortedData, не включая повторяющиеся и бессмысленные(типа "34км") элементы
+	for(var i = 0, limitLength = dataToSort.length; 
+			i < limitLength; i++) {
+	 	if( (dataToSort[i]["City"].slice(-2) !== "км") && 
+	 		dataToSort[i+1] &&
+	 		(dataToSort[i]["City"] !== dataToSort[i+1]["City"]) ) 
 	 	{
-	 		dataSortedUnique.push( dataSorted[i] );
+	 		sortedData.push( dataToSort[i] );
 	 	}
 	}
-	//Убираем вспомогательные массивы, в том числе data из global scope. Остается только dataSortedUnique
-	data = dataCopy = mapData = dataSorted = null;
-	
-	//Добавление в массив itemList элементов li с названиями городов из отсортированных данных
-/*	dataSortedUnique.forEach(function(i) {
-		var listItem = document.createElement("li");
-		listItem.classList.add("list-item");
-		listItem.setAttribute("data-list-item", "");
-		listItem.innerHTML = i["City"];
-		itemList.push(listItem);
-		listItem = null;
-	});*/
-	//Убираем вспомогательный массив
-	//dataSortedUnique = null;
+	//Убираем вспомогательные массивы, в том числе data из global scope. Остается только sortedData
+
+	//Переопределяем data
+	data = sortedData;
+	//Зануляем созданные для сортировки массивы
+	sortedData = dataCopy = mapData = dataToSort = null;
 
 
 	// ========== Конструктор класса Autocomplete ==========
@@ -64,9 +58,10 @@
 
 //  ========== Добавление в прототип методов и свойств ==========
   
+  var _Class = Autocomplete.prototype;
 
   //Сеттер свойства, соответсвтующего элементу ul - списку городов
-  Autocomplete.prototype._setList = function() {
+  _Class._setList = function() {
   	var list = document.createElement("ul");
   	list.classList.add("data-list");
   	list.setAttribute("data-list", "");
@@ -74,14 +69,29 @@
   }
 
 	//Сеттер модификатора списка, который делает его открывающимся вверх при расстоянии в данном случае от низа окна не более 200px
-	Autocomplete.prototype._setListUp = function() {
-		var offset = window.innerHeight - this._container.clientHeight - this._container.offsetTop;
+	_Class._setListUp = function() {
+		var offsetBottom,
+				offsetParent;
+		//Выбор элемента, от которого будет отчет нижнего отступа
+		this._input.nextElementSibling ? offsetParent = this._parent
+																	 : offsetParent = document.body
+		
+		//Функция для получения координат поля ввода относительно окна без учета прокрутки страницы
+		function getCoords(elem) { 
+		  var box = elem.getBoundingClientRect();
+		  return {
+		    top: box.top + pageYOffset,
+		    left: box.left + pageXOffset
+		  };
+	  }
+	  var coordinates = getCoords(this._input);
+		offset = offsetParent.clientHeight - coordinates.top - this._input.offsetHeight;
 		if( offset <= 200 )
 			this._list.classList.add("data-list__up");
 	}
 
 	//Сеттер свойства, указывающего на элемент списка с сообщением "Не найдено"
-	Autocomplete.prototype._setNotFound = function() {
+	_Class._setNotFound = function() {
 		var notFound = document.createElement("li");
 		notFound.classList.add("list-item_error");
 		notFound.setAttribute("data-not-found", "");
@@ -90,7 +100,7 @@
 	}
 
 	//Сеттер свойства, указывающего на элемент "счетчик" отсортированных городов. Показывает кол-во найденных и показанных городов внизу списка
-	Autocomplete.prototype._setCounterItem = function() {
+	_Class._setCounterItem = function() {
 		var counterItem = document.createElement("li");
 		counterItem.innerHTML = 
 		"Показано <span class='items-shown' data-shown-number></span> из <span class='list-length' data-found-number></span> найденных городов. Уточните запрос, чтобы увидеть остальные.";
@@ -100,7 +110,7 @@
 	}
 
 	//Сеттер свойства, указывающего на элемент c сообщением об ошибке при валидации
-	Autocomplete.prototype._setChooseItem = function() {
+	_Class._setChooseItem = function() {
 		var chooseItem = document.createElement("span");
 		chooseItem.classList.add("choose-city");
 		chooseItem.setAttribute("data-choose-city", "");
@@ -109,7 +119,7 @@
 	}
 
 	//Сеттер модификатора на список городов при кол-ве городов меньше или равном 5. Данный модификатор устанавливает отступ снизу = 0, так как счетчик городов в этом случае не показывается
-	Autocomplete.prototype._setListSmall = function() {
+	_Class._setListSmall = function() {
 		if(this._list && this._list.children.length <= 5) {
 			this._list.classList.add("data-list__small");
 		} else {
@@ -119,7 +129,7 @@
 	}
 
 	//Общий сеттер для всех свойств
-	Autocomplete.prototype._setAllProperties = function() {
+	_Class._setAllProperties = function() {
 		this._setList();
 		this._setListUp();
 		this._setNotFound();
@@ -128,45 +138,39 @@
 	}
 
 	//Метод добавления города в список при соответствии запросу
-	Autocomplete.prototype._insertItem = function() {
+	_Class._insertItem = function() {
 		var that = this,
 				value = this._input.value,
 				items;
 		if( value && value[0] !== " " ) 
 		{
-			//Заполняем список
-/*			for(var i = 0; i < itemList.length; i++) 
-			{
-				if( itemList[i].innerHTML.toLowerCase()
-					.indexOf(value.toLowerCase()) === 0 ) 
-				{
-					this._list.insertBefore(itemList[i], this._list.firstElementChild);
-				} 
-			}*/
 			//Очищаем элементы списка с предыдущего вызова метода во избежание дублирования
 			this._list.innerHTML = "";
-			//Проходимся по массиву с данными
-			dataSortedUnique.forEach(function(i){
+			//Проходимся по JSON массиву 
+			data.forEach(function(i){
 				var city = i["City"].toLowerCase();
 				value = value.toLowerCase();
+				//Ищем вхождение введенного значения в данных
 				if( city.indexOf(value) === 0 )
 				{
+					//Создаем элемент и заполняем совпавшим значением
 					var element = document.createElement("li");
 					element.classList.add("list-item");
 					element.setAttribute("data-list-item", "");
 					element.innerHTML = i["City"];
+					//Вставляем во фрагмент
 					that._fragment.insertBefore(element, that._fragment.firstChild);
 					element = null;
 				}
 			});
+			//Вставляем фрагмент в список(который пока не в DOM)
 			this._list.insertBefore(this._fragment, this._list.firstChild);
-			//listFragment = null;
-			//console.dir(listFragment);
 
 			//Отменяем метод при отсутствии совпадений
 			if(!this._list.firstElementChild) return;
 			
-			items = this._list.children;
+			items = this._list.children;//Текущие элементы в списке
+			
 			[].forEach.call(items, function(i){				
 			//Проверяем наличие активных элементов списка
 			if( i.matches("li[data-active-item]") ) 
@@ -185,7 +189,7 @@
 	} 
 
 	//Метод добавления "Не найдено" в список при несоответствии запросу 
-	Autocomplete.prototype._insertNotFound = function() {
+	_Class._insertNotFound = function() {
 		var value = this._input.value;
 		if( value && this._list.children.length === 0 ) 
 		{
@@ -195,7 +199,7 @@
 	}
 
 	//Валидация. Вызывается при потере фокуса
-	Autocomplete.prototype._insertChooseItem = function() {
+	_Class._insertChooseItem = function() {
 		var value = this._input.value;
 		if( value &&
 			this._list.firstElementChild.matches("li[data-not-found]") )
@@ -207,7 +211,7 @@
 	}
 
 	//Метод добавления элемента списка - "счетчика" найденных городов при кол-ве вариантов > 5
-	Autocomplete.prototype._insertCounterItem = function() {
+	_Class._insertCounterItem = function() {
 		var counter,
 		counterLI,
 		cities,
@@ -215,7 +219,8 @@
 		
 		//Делаем все невидимые элементы с предыдущего вызова видимыми - обнуляем display: none
 		[].forEach.call(items, function(i){
-			i.style.display = "";
+			if(i.style.display = "none")  
+				i.style.display = ""
 		});
 
 		if( !counterLI && items.length > 5 ) 
@@ -236,7 +241,7 @@
 				if( items.length > 50 )
 				{
 					//Показываем 20 городов при числе найденных > 50
-					if( i.matches("li[data-list-item]:nth-child(n + 20)") )
+					if( i.matches("li[data-list-item]:nth-child(n + 21)") )
 						i.style.display = "none";
 				} else {
 					//Показываем 5 городов при числе найденных < 50
@@ -252,36 +257,29 @@
 		}
 	}
 
-	//Метод удаления счетчика списка городов при кол-ве вариантов < 5
-	Autocomplete.prototype._deleteCounter = function() {
+	//Метод удаления счетчика списка городов при кол-ве совпадений < 5
+	_Class._deleteCounter = function() {
 		var cities = this._list.querySelectorAll("li[data-list-item]"),
 				counter = this._list.querySelector("li[data-list-counter]");
-		if( cities.length <= 5  && counter) {
+		if( counter && cities.length <= 5 ) {
 			counter.remove();
-			/*[].forEach.call(this._list.children, function(i){
-				if(i.matches("li[data-list-counter]"))
-				{
-					i.remove();
-				}
-			});*/
 		}
 	}
 
 	//Метод удаления города из списка при несоответствии началу введенного значения
-	Autocomplete.prototype._deleteItem = function() {
+	_Class._deleteItem = function() {
 		var cities = this._list.querySelectorAll(
 			"li[data-list-item]"
 			),
 		counterLI = this._list.querySelector("li[data-list-counter]"),
 		value = this._input.value;
-		for(var i = 0; i < cities.length; i++) 
-		{
-			if( cities[i].innerHTML.toLowerCase()
-				.indexOf(value.toLowerCase()) !== 0 ) 
-			{
-				cities[i].remove();	
-			}
-		}
+
+		[].forEach.call(cities, function(i){
+			var city = i.innerHTML.toLowerCase();
+			value = value.toLowerCase();
+			if(city.indexOf(value) !== 0)
+				i.remove();
+		});
 		//Удаление элемента с текстом "Не найдено" при хотя бы одном совпадении
 		if( this._list.children.length >= 2 &&
 			this._list.lastChild.matches("li[data-not-found]") )
@@ -291,7 +289,7 @@
 	}
 
 	//Метод выбора значение элемента по клику и последующего скрытия списка
-	Autocomplete.prototype._clickItem = function() {
+	_Class._clickItem = function() {
 		var that = this;
 		this._list.addEventListener("click", function(e) {
 			if( e.target.nodeName === "LI" && 
@@ -304,7 +302,7 @@
 	}
 
  //Mетод "активации" элемента
-	Autocomplete.prototype._activateItem = function(elem) {
+	_Class._activateItem = function(elem) {
 		if(elem.matches("li[data-list-item]"))
 		{
 			elem.classList.add("list-item_active");
@@ -313,13 +311,13 @@
 	}
 	
 	//Mетод "деактивации" элемента
-	Autocomplete.prototype._deactivateItem = function(elem) {
+	_Class._deactivateItem = function(elem) {
 		elem.classList.remove("list-item_active");
 		elem.removeAttribute("data-active-item");
 	}
 
 	//Метод полного очищения списка и удаления из DOM
-	Autocomplete.prototype._clearList = function() {
+	_Class._clearList = function() {
 		while( this._list.firstChild )
 		{
 			this._list.removeChild(this._list.firstChild);
@@ -329,7 +327,7 @@
 	}
 	
 	//Управление выбором с клавиатуры
-	Autocomplete.prototype._keyInteraction = function(e){
+	_Class._keyInteraction = function(e){
 		var active = this._list.querySelector("li[data-active-item]"),
 				nextActive = active.nextElementSibling,//нижний сосед активного элемента
 				prevActive = active.previousElementSibling;//верхний сосед активного элемента
@@ -376,7 +374,7 @@
 	}
 
 	//Метод формирования списка
-	Autocomplete.prototype._createList = function() {
+	_Class._createList = function() {
 		this._insertItem();
 		this._deleteItem();
 		this._insertCounterItem();
@@ -386,19 +384,14 @@
 	}
 
 	//Метод-слушатель keyup
-	Autocomplete.prototype._keyupListen = function() {
+	_Class._keyupListen = function() {
 		var that = this;
 		this._input.addEventListener("keyup", function(e){
 			//Если не нажата управляющая кнопка 
 			if( that._controlKeys.indexOf(e.keyCode) === -1)	
 			{
 				//Формируем список
-				var start, end, time;
-				start = performance.now();
 				that._createList.call(that);
-				end = performance.now();
-				time = end - start;
-				console.log(time);
 			}
 			//Убираем список если поле ввода становится пустым
 			if( !this.value ) {
@@ -408,7 +401,7 @@
 	}
 	
 	//Метод - слушатель keydown для управления с клавиатуры
-	Autocomplete.prototype._keyDown = function() {
+	_Class._keyDown = function() {
 		var that = this;
 		this._input.addEventListener("keydown", function(e){
 			//Проверка нажатия управляющей кнопки
@@ -417,14 +410,14 @@
 				if( that._list.firstChild && 
 							that._list.firstChild.
 							matches("li[data-list-item]") )
-					//Запуск метода с текущим аргументом события "е"
+					//Запуск метода с текущим "е"
 					that._keyInteraction.call(that, e);
 			}
 		});
 	}
 
 	//Метод-слушатель focus
-	Autocomplete.prototype._focusListen = function() {
+	_Class._focusListen = function() {
 		var that = this;
 		this._input.addEventListener("focus", function(){
 			this.select();
@@ -436,11 +429,15 @@
 				that._parent.removeChild(that._chooseItem);
 			//Формируем список
 			that._createList.call(that);
+			// Не показываем список на фокус при полном совпадении 
+			if( that._list.firstElementChild &&
+					this.value === that._list.firstElementChild.innerHTML)
+				that._clearList.call(that);
 		});
 	}
 
 	//Метод-слушатель blur
-	Autocomplete.prototype._blurListen = function() {
+	_Class._blurListen = function() {
 		var that = this;
 		this._input.addEventListener("blur", function(e) {
 			if( that._list.firstElementChild &&
@@ -469,12 +466,12 @@
 	}
 
 	//Метод отмены прокрутки страницы при окончании прокрутки списка
-	Autocomplete.prototype._scrollListen = function() {
+	_Class._scrollListen = function() {
 		var delta,
 		isFirefox = (navigator.userAgent.indexOf("Gecko") !== -1);
 		this._list.addEventListener("mousewheel", function(e) {
 			delta = e.wheelDelta;
-			this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+			this.scrollTop += ( delta < 0 ? 1 : -1 ) * 50;
 			e.preventDefault();
 		});
 			//Для Mozilla
@@ -482,14 +479,14 @@
 			{
 				this._list.addEventListener("DOMMouseScroll", function(e) {
 					delta = -e.detail;
-					this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+					this.scrollTop += ( delta < 0 ? 1 : -1 ) * 50;
 					e.preventDefault();
 				});
 			}
 		}
 
 	//Фиксация счетчика городов внизу при прокрутке списка
-	Autocomplete.prototype._listScroll = function() {
+	_Class._listScroll = function() {
 		var that = this,
 		bottom,
 		isFirefox = (navigator.userAgent.indexOf("Gecko") !== -1);
@@ -518,7 +515,7 @@
 		}
 
 	//Метод очищения списка при фокусе на любой другой input на странице
-	Autocomplete.prototype._bodyClick = function(){
+	_Class._bodyClick = function(){
 		var that = this;
 		document.body.addEventListener("click", function(e){
 			if(e.target.matches("input") && !(e.target === that._input) )
@@ -527,10 +524,14 @@
 	}
 
 	//Метод - слушатель mouseover 
-	Autocomplete.prototype._mouseEnter = function() {
+	_Class._mouseEnter = function() {
 		var that = this,
 				cities;
 		this._list.addEventListener("mouseover", function(e){
+			var counterLI = that._list.querySelector("li[data-list-counter]");
+			that._input.focus();
+			if(counterLI)
+				counterLI.style.bottom = -that._list.scrollTop + "px";
 			cities = that._list.children;
 			//Проверка наведения на город в списке
 			if(e.target.matches("li[data-list-item]")) {
@@ -548,7 +549,7 @@
 	}
 
 	//Метод для инициализации всех слушателей событий
-	Autocomplete.prototype._triggerAllListeners = function() {
+	_Class._triggerAllListeners = function() {
 		this._keyupListen();
 		this._keyDown();
 		this._focusListen();
@@ -561,16 +562,18 @@
 	}
 
 	//Метод инициализации
-	Autocomplete.prototype.InitAutocomplete = function() {
+	_Class.InitAutocomplete = function() {
 		this._setAllProperties();
 		this._triggerAllListeners();
 	}
-
+	_Class.autocomplete = function() {
+		(new Autocomplete(this)).InitAutocomplete()
+	}
 	//Создаем экземпляры класса с аргуметом input
 	inputOnTop = new Autocomplete(inputs[0]);
 	inputOnBottom = new Autocomplete(inputs[1]);
 	//Инициализируем
 	inputOnTop.InitAutocomplete();
 	inputOnBottom.InitAutocomplete();
-
 })();
+
