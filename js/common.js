@@ -51,7 +51,7 @@
 		this._input = input; //Входящий input
 		this._parent = this._input.parentElement; //Родитель input
 		this._container = this._parent.parentElement; //Контейнер
-		this._controlKeys = [9, 13, 27, 38, 40];//Коды кнопок, задействованных в управлении с клавиатуры 
+		this._controlKeys = [9, 13, 17, 18, 37, 39, 27, 38, 40];//Коды управляющих кнопок 
 		this._fragment = document.createDocumentFragment();//Фрагмент, который будет заполняться элементами li с названиями городов
 	}
 
@@ -70,12 +70,7 @@
 
 	//Сеттер модификатора списка, который делает его открывающимся вверх при расстоянии в данном случае от низа окна не более 200px
 	_Class._setListUp = function() {
-		var offsetBottom,
-				offsetParent;
-		//Выбор элемента, от которого будет отчет нижнего отступа
-		this._input.nextElementSibling ? offsetParent = this._parent
-																	 : offsetParent = document.body
-		
+		var offset;	
 		//Функция для получения координат поля ввода относительно окна без учета прокрутки страницы
 		function getCoords(elem) { 
 		  var box = elem.getBoundingClientRect();
@@ -85,7 +80,8 @@
 		  };
 	  }
 	  var coordinates = getCoords(this._input);
-		offset = offsetParent.clientHeight - coordinates.top - this._input.offsetHeight;
+		//Высчитаваем отступ поля ввода относительно низа страницы
+		offset = document.body.clientHeight - coordinates.top - this._input.offsetHeight;
 		if( offset <= 200 )
 			this._list.classList.add("data-list__up");
 	}
@@ -329,8 +325,20 @@
 	//Управление выбором с клавиатуры
 	_Class._keyInteraction = function(e){
 		var active = this._list.querySelector("li[data-active-item]"),
-				nextActive = active.nextElementSibling,//нижний сосед активного элемента
-				prevActive = active.previousElementSibling;//верхний сосед активного элемента
+				nextActive,//нижний сосед активного элемента
+				prevActive,//верхний сосед активного элемента
+				inputs = document.querySelectorAll("input"),
+				inputsArray = [].slice.call(inputs), 
+				textareas = document.querySelectorAll("textarea"),
+				textareasArray = [].slice.call(textareas),
+				selects = document.querySelectorAll("select"),
+				selectsArray = [].slice.call(selects),
+				//Массив из элементов полей ввода на странице
+				controls = inputsArray.concat(textareasArray, selectsArray);
+		if( active ) {
+			nextActive = active.nextElementSibling;
+			prevActive = active.previousElementSibling;
+		}
 		switch (e.keyCode) {
 			case 40://Стрелка вниз
 				if( nextActive && nextActive.matches("li[data-list-item]") && (nextActive.style.display !== "none") )
@@ -364,7 +372,18 @@
 				this._clearList();
 				break;
 			case 13://Enter - выбор активного элемента списка
-				this._input.value = active.innerText;
+				this._list.firstChild.matches("li[data-list-item]") ? 
+					 //Заполняем поле ввода значением активного элемента
+					this._input.value = active.innerText : 
+						//Валидируем если нет совпадения
+						this._insertChooseItem()
+				
+				//Определяем индекс поля ввода в массиве
+				var index = controls.indexOf(this._input);
+
+				//Переходим к следующему полю, если его нет - к предыдущему
+				controls[index + 1] ? controls[index + 1].focus()
+														: controls[index - 1].focus()
 				this._clearList();
 				break;
 			case 9: //Нажатие TAB - переход к следующему контролу, очищаем текущий
@@ -407,9 +426,9 @@
 			//Проверка нажатия управляющей кнопки
 			if( that._controlKeys.indexOf(e.keyCode) !== -1)
 			{
-				if( that._list.firstChild && 
+				/*if( that._list.firstChild && 
 							that._list.firstChild.
-							matches("li[data-list-item]") )
+							matches("li[data-list-item]") )*/
 					//Запуск метода с текущим "е"
 					that._keyInteraction.call(that, e);
 			}
@@ -471,7 +490,8 @@
 		isFirefox = (navigator.userAgent.indexOf("Gecko") !== -1);
 		this._list.addEventListener("mousewheel", function(e) {
 			delta = e.wheelDelta;
-			this.scrollTop += ( delta < 0 ? 1 : -1 ) * 50;
+			//Установка скролла вручную
+			this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
 			e.preventDefault();
 		});
 			//Для Mozilla
@@ -479,7 +499,8 @@
 			{
 				this._list.addEventListener("DOMMouseScroll", function(e) {
 					delta = -e.detail;
-					this.scrollTop += ( delta < 0 ? 1 : -1 ) * 50;
+					//Установка скролла вручную
+					this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
 					e.preventDefault();
 				});
 			}
