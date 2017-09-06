@@ -5,7 +5,7 @@
  -Ссылка на описание требуемой функциональности:
  https://g.kontur.ru/controls/autocomplete/
  
- -Репозиторий на Github: https://github.com/KirKaz12/skb-test-case
+ -Репозиторий на Github: https://github.com/step-off/skb-test-case
 
 
 ----------
